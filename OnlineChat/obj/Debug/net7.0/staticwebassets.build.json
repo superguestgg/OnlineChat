@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "Hash": "97CWa43p2b4vT8SbOQEse/bYek96XVXkyjPyw9DD8jQ=",
+  "Source": "OnlineChat",
+  "BasePath": "_content/OnlineChat",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "OnlineChat\\wwwroot",
+      "Source": "OnlineChat",
+      "ContentRoot": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\",
+      "BasePath": "_content/OnlineChat",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\index.html",
+      "SourceId": "OnlineChat",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\",
+      "BasePath": "_content/OnlineChat",
+      "RelativePath": "index.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\index.html"
+    }
+  ]
+}
