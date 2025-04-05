@@ -5,102 +5,85 @@ namespace OnlineChat;
 
 public class ChatHub : Hub
 {
-    private static readonly ConcurrentDictionary<string, string> Users = new ();
+    private readonly RoomsService _roomsService;
 
-    public async Task RegisterUser(string userName)
+    public ChatHub(RoomsService roomsService)
     {
-        var connectionId = Context.ConnectionId;
-        if (Users.ContainsKey(connectionId))
-            Users.TryRemove(connectionId, out _);
-
-        Users.TryAdd(connectionId, userName);
-        
-        await Clients.Others.SendAsync("UserConnected", userName);
-        await Clients.Caller.SendAsync("ReceiveMessage", "System", $"Добро пожаловать, {userName}!");
-        await UpdateUsersList();
-    }
-
-    
-    public async Task Send(string message)
-    {
-        if (IsRegistered())
-        {
-            await Clients.All.SendAsync("Send", message);
-        }
-        else
-        {
-            await Clients.Caller.SendAsync("ReceiveMessage", "system", "you aren;t registered");
-        }
+        _roomsService = roomsService;
     }
     
-    public async Task SendMessage(string user, string message)
-    {
-        if (IsRegistered())
-        {
-            await Clients.All.SendAsync("ReceiveMessage", user, message);
-        }
-        else
-        {
-            await Clients.Caller.SendAsync("ReceiveMessage", "system", "you aren;t registered");
-        }
-    }
-    
-    // Этот метод вызывается автоматически при успешном подключении клиента
-    public override async Task OnConnectedAsync()
-    {
-        // Получаем идентификатор подключения
-        var connectionId = Context.ConnectionId;
-        if (!Users.ContainsKey(connectionId))
-        {
-            //Users.TryAdd(connectionId, connectionId);
-            //await UpdateUsersList();
-        }
-        
-        // Получаем идентификатор пользователя (если используется аутентификация)
-        var userId = Context.User?.Identity?.Name ?? "Anonymous";
-        
-        // Можно сохранить информацию о подключении в базе данных или памяти
-        // Например, через dependency injection можно получить доступ к хранилищу
-        
-        // Уведомляем других клиентов о новом подключении
-        // await Clients.Others.SendAsync("UserConnected", userId, connectionId);
-        
-        // Можно отправить новому клиенту информацию о текущем состоянии
-        // Например, список уже подключенных пользователей
-        // await Clients.Caller.SendAsync("ReceiveConnectedUsers", GetConnectedUsers());
-        
-        await base.OnConnectedAsync();
-    }
-    
-    public override async Task OnDisconnectedAsync(Exception exception)
-    {
-        var connectionId = Context.ConnectionId;
-        if (Users.TryRemove(connectionId, out var userName))
-        {
-            await Clients.Others.SendAsync("UserDisconnected", userName);
-            await UpdateUsersList();
-        }
+    private static readonly ConcurrentDictionary<string, List<string>> UserRooms = new();
 
+    public async Task<object> JoinRoom(string roomId, string userName, string roomName)
+    {
+        var room = _roomsService.GetOrCreate(roomId, roomName);
+
+        if (!room.TryAddUser(Context.ConnectionId, userName))
+            throw new HubException("name reserved");
+
+        if (!UserRooms.TryGetValue(Context.ConnectionId, out var listRooms))
+            throw new HubException("you aren't user");
+
+        listRooms.Add(roomId);
+        
+        await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
+        await Clients.Group(roomId).SendAsync("UserJoined", userName);
+        await UpdateUsersList(roomId);
+        
+        return new { 
+            roomId = room.Id,
+            roomName = room.Name
+        };
+    }
+
+    public async Task LeaveRoom(string roomId)
+    {
+        if (_roomsService.TryGetValue(roomId, out var room) && 
+            room.Users.TryGetValue(Context.ConnectionId, out var userName))
+        {
+            room.RemoveUser(Context.ConnectionId);
+            
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);
+            await Clients.Group(roomId).SendAsync("UserLeft", userName);
+            await UpdateUsersList(roomId);
+            
+            if (room.Users.Count == 0)
+                _roomsService.RemoveRoom(roomId);
+        }
+    }
+    
+    public override Task OnConnectedAsync()
+    {
+        UserRooms.TryAdd(Context.ConnectionId, new List<string>());
+        return base.OnConnectedAsync();
+    }
+    
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        if (UserRooms.TryGetValue(Context.ConnectionId, out var roomsIds))
+        {
+            foreach (var roomId in roomsIds)
+            {
+                await LeaveRoom(roomId);
+            }
+        }
         await base.OnDisconnectedAsync(exception);
     }
     
-    private async Task UpdateUsersList()
+    public async Task SendMessage(string roomId, string message)
     {
-        var users = Users.Values.OrderBy(u => u).ToList();
-        await Clients.All.SendAsync("UpdateUsersList", users);
+        if (_roomsService.TryGetValue(roomId, out var room) && 
+            room.Users.TryGetValue(Context.ConnectionId, out var userName))
+        {
+            await Clients.Group(roomId).SendAsync("ReceiveMessage", userName, message);
+        }
     }
 
-    private bool IsRegistered()
+    private async Task UpdateUsersList(string roomId)
     {
-        var connectionId = Context.ConnectionId;
-        return Users.ContainsKey(connectionId);
-    }
-    
-    // Пример метода для получения списка подключенных пользователей
-    private List<string> GetConnectedUsers()
-    {
-        // Здесь должна быть логика получения списка подключенных пользователей
-        // Например, из базы данных или хранилища в памяти
-        return new List<string>();
+        if (_roomsService.TryGetValue(roomId, out var room))
+        {
+            await Clients.Group(roomId).SendAsync("UpdateUsers", room.UsersNames.ToList());
+        }
     }
 }

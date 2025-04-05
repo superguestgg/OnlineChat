@@ -1,0 +1,67 @@
+# Стандартные сборочные каталоги
+bin/
+obj/
+
+# Каталоги публикации
+publish/
+out/
+
+# Файлы пользовательских настроек
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# Visual Studio
+.vs/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# Папки временных зависимостей
+TestResults/
+node_modules/
+bower_components/
+
+# Логи
+*.log
+
+# Конфигурации
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+
+# Бэкапы
+*.bak
+*.old
+*.orig
+
+# Mac/Linux
+.DS_Store
+*.swp
+*.swo
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# DotCover / Coverage
+*.dotCover
+coverage/
+*.coverage
+*.coveragexml
+
+# Docker
+**/docker-compose.override.yml

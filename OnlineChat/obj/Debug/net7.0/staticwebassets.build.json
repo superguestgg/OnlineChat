@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "97CWa43p2b4vT8SbOQEse/bYek96XVXkyjPyw9DD8jQ=",
+  "Hash": "TzsPdbxXTKoLgFnnCIAOsxfDaLTj8/x9sKHKOOZcHmU=",
   "Source": "OnlineChat",
   "BasePath": "_content/OnlineChat",
   "Mode": "Default",
@@ -16,6 +16,40 @@
     }
   ],
   "Assets": [
+    {
+      "Identity": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\app.js",
+      "SourceId": "OnlineChat",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\",
+      "BasePath": "_content/OnlineChat",
+      "RelativePath": "app.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\app.js"
+    },
+    {
+      "Identity": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\chat.html",
+      "SourceId": "OnlineChat",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\",
+      "BasePath": "_content/OnlineChat",
+      "RelativePath": "chat.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\chat.html"
+    },
     {
       "Identity": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\index.html",
       "SourceId": "OnlineChat",

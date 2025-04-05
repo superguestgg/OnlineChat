@@ -20,6 +20,7 @@ public class Startup
         {
             endpoints.MapHub<ChatHub>("/chat");
             endpoints.MapHub<ChatHub>("/chatHub");
+            endpoints.MapHub<RoomHub>("/roomHub");
         });
     }
 }

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.SignalR;
 using OnlineChat;
 
 internal class Program
@@ -6,6 +7,8 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddSignalR();
+        builder.Services.AddSingleton<RoomsService>();
+        
         var app = builder.Build();
 
         var s = new Startup();

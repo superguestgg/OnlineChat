@@ -1,6 +1,14 @@
 {
   "Files": [
     {
+      "Id": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\app.js",
+      "PackagePath": "staticwebassets\\app.js"
+    },
+    {
+      "Id": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\chat.html",
+      "PackagePath": "staticwebassets\\chat.html"
+    },
+    {
       "Id": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\index.html",
       "PackagePath": "staticwebassets\\index.html"
     },
