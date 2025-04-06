@@ -18,8 +18,8 @@ public class Startup
  
         app.UseEndpoints(endpoints =>
         {
-            endpoints.MapHub<ChatHub>("/chat");
             endpoints.MapHub<ChatHub>("/chatHub");
+            endpoints.MapHub<PrivateChatHub>("/privateChatHub");
             endpoints.MapHub<RoomHub>("/roomHub");
         });
     }

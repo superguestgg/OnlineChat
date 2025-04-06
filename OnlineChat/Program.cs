@@ -8,6 +8,7 @@ internal class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddSignalR();
         builder.Services.AddSingleton<RoomsService>();
+        builder.Services.AddSingleton<PrivateRoomsService>();
         
         var app = builder.Build();
 

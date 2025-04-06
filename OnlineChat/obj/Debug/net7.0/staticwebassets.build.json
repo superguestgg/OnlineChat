@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "TzsPdbxXTKoLgFnnCIAOsxfDaLTj8/x9sKHKOOZcHmU=",
+  "Hash": "IIstTlX4PKCXcMCTeuwaqCuEn+q6IsvEFhuikpkdZyE=",
   "Source": "OnlineChat",
   "BasePath": "_content/OnlineChat",
   "Mode": "Default",
@@ -51,6 +51,23 @@
       "OriginalItemSpec": "wwwroot\\chat.html"
     },
     {
+      "Identity": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\dh.js",
+      "SourceId": "OnlineChat",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\",
+      "BasePath": "_content/OnlineChat",
+      "RelativePath": "dh.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\dh.js"
+    },
+    {
       "Identity": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\index.html",
       "SourceId": "OnlineChat",
       "SourceType": "Discovered",
@@ -66,6 +83,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\index.html"
+    },
+    {
+      "Identity": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\privateChat.html",
+      "SourceId": "OnlineChat",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\",
+      "BasePath": "_content/OnlineChat",
+      "RelativePath": "privateChat.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\privateChat.html"
     }
   ]
 }

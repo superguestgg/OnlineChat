@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат комнаты</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        #chat-header {
+            background: #4285f4;
+            color: white;
+            padding-left: 15px;
+            padding-right: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        #header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #chat-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            background-color: white;
+        }
+
+        #sidebar {
+            width: 250px;
+            max-width: 30%;
+            background: #f9f9f9;
+            border-right: 1px solid #ddd;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: white;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 80%;
+            word-break: break-word;
+        }
+
+        .message.system {
+            background: #e8f5e9;
+            margin: 10px auto;
+            text-align: center;
+            font-size: 0.9em;
+            color: #2e7d32;
+        }
+
+        .message.outgoing {
+            background: #e3f2fd;
+            margin-left: auto;
+        }
+
+        .message.incoming {
+            background: #f1f1f1;
+            margin-right: auto;
+        }
+
+        #input-area {
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            background: white;
+            display: flex;
+        }
+
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        #send-btn {
+            padding: 10px 20px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        #send-btn:hover {
+            background: #3367d6;
+        }
+
+        .user-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+        }
+
+        .user-item {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .user-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4caf50;
+            margin-right: 10px;
+        }
+
+        #invite-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        #invite-controls {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        #invite-link {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9em;
+            background: #f9f9f9;
+        }
+
+        #copy-btn {
+            padding: 8px 12px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 0.9em;
+        }
+
+        #copy-btn:hover {
+            background: #3367d6;
+        }
+
+        #copy-success {
+            color: #2e7d32;
+            font-size: 0.8em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        #leave-btn {
+            padding: 8px 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #leave-btn:hover {
+            background: #d32f2f;
+        }
+    </style>
+    <!-- ... (предыдущий код head и стили остаются без изменений) ... -->
+    <style>
+        /* Добавляем новые стили для сообщения с запросом */
+        .message.join-request {
+            background: #fff8e1;
+            margin: 10px auto;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .request-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .accept-btn {
+            padding: 5px 10px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .decline-btn {
+            padding: 5px 10px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+    <script src="dh.js"></script>
+</head>
+<body>
+<div id="chat-header">
+    <h2 id="room-title">Комната</h2>
+    <div id="header-controls">
+        <button id="leave-btn">Покинуть комнату</button>
+    </div>
+</div>
+
+<div id="chat-container">
+    <div id="sidebar">
+        <h3>Участники (<span id="users-count">0</span>)</h3>
+        <ul class="user-list" id="users-list"></ul>
+
+        <div id="invite-section">
+            <h4>Пригласить друзей</h4>
+            <div id="invite-controls">
+                <input type="text" id="invite-link" readonly>
+                <button id="copy-btn">Копировать</button>
+            </div>
+            <div id="copy-success">Ссылка скопирована в буфер обмена!</div>
+        </div>
+    </div>
+
+    <div id="messages"></div>
+</div>
+
+<div id="input-area">
+    <input type="text" id="message-input" placeholder="Введите сообщение..." disabled>
+    <button id="send-btn" disabled>Отправить</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    function getRandomNumber(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function getUrlParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return {
+            roomId: urlParams.get('room'),
+            name: urlParams.get('name') ? decodeURIComponent(urlParams.get('name')) : null
+        };
+    }
+
+    // Получаем данные из sessionStorage
+    let chatData = JSON.parse(sessionStorage.getItem('chatData'));
+    if (!chatData || !chatData.roomId || !chatData.username) {
+        if (!chatData)
+            chatData = Object()
+        const urlParams = getUrlParams();
+        if (!urlParams.roomId || !urlParams.name) {
+            alert("Не удалось загрузить данные чата" + chatData.roomId + chatData.username + urlParams.roomId + urlParams.name);
+            window.close();
+        } else {
+            const randomNum = getRandomNumber(1, 1000000);
+            chatData.roomId = urlParams.roomId;
+            chatData.username = urlParams.name + randomNum;
+            chatData.roomName = urlParams.name;
+        }
+    }
+
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/privateChatHub")
+        .configureLogging(signalR.LogLevel.Information)
+        .withAutomaticReconnect()
+        .build();
+
+    // Элементы UI
+    const roomTitle = document.getElementById('room-title');
+    const messagesContainer = document.getElementById('messages');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const leaveBtn = document.getElementById('leave-btn');
+    const usersList = document.getElementById('users-list');
+    const usersCount = document.getElementById('users-count');
+    const inviteLinkInput = document.getElementById('invite-link');
+    const copyBtn = document.getElementById('copy-btn');
+    const copySuccess = document.getElementById('copy-success');
+
+    // Генерация ссылки для приглашения
+    function generateInviteLink(roomName) {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('room', chatData.roomId);
+        currentUrl.searchParams.set('name', encodeURIComponent(roomName));
+        return currentUrl.toString();
+    }
+
+    // Копирование ссылки
+    function copyInviteLink() {
+        inviteLinkInput.select();
+        document.execCommand('copy');
+
+        // Показываем подтверждение
+        copySuccess.style.display = 'block';
+        setTimeout(() => {
+            copySuccess.style.display = 'none';
+        }, 2000);
+    }
+
+    async function startConnection() {
+        try {
+            await connection.start();
+            console.log("Connected to ChatHub");
+
+            // Присоединяемся к комнате
+            const roomInfo = await connection.invoke("JoinRoom", chatData.roomId, chatData.username, chatData.roomName);
+            roomTitle.textContent = roomInfo.roomName;
+
+            // Устанавливаем ссылку для приглашения
+            inviteLinkInput.value = generateInviteLink(roomInfo.roomName);
+
+            // Активируем UI
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+            messageInput.focus();
+
+            // Добавляем приветственное сообщение
+            addMessage('System', `Вы присоединились к комнате "${roomInfo.roomName}"`, 'system');
+
+        } catch (err) {
+            console.error(err);
+            alert(`Ошибка подключения к чату ${err}`);
+            window.close();
+        }
+    }
+
+    // Обработчики сообщений от сервера
+    connection.on("ReceiveMessage", (user, message) => {
+        addMessage(user, message, user === chatData.username ? 'outgoing' : 'incoming');
+    });
+
+    connection.on("UserJoined", (username) => {
+        addMessage('System', `${username} присоединился`, 'system');
+    });
+
+    connection.on("UserLeft", (username) => {
+        addMessage('System', `${username} покинул чат`, 'system');
+    });
+
+    connection.on("UpdateUsers", (users) => {
+        updateUsersList(users);
+    });
+
+    // Новый обработчик для запроса на присоединение
+    connection.on("UserWantJoin", (userId, username) => {
+        addJoinRequestMessage(userId, username);
+    });
+
+    connection.on("Declined", (reason) => {
+        addMessage('System', `Ваш запрос был отклонен: ${reason || 'без указания причины'}`, 'declined');
+    });
+
+    connection.on("UserDeclined", (adminName, declinedUserName, reason) => {
+        const messageText = reason
+            ? `${adminName} отклонил запрос от ${declinedUserName}. Причина: ${reason}`
+            : `${adminName} отклонил запрос от ${declinedUserName}`;
+
+        addMessage('System', messageText, 'declined-notification');
+    });
+
+    // Новые обработчики для принятия
+    connection.on("Accepted", () => {
+        addMessage('System', 'Ваш запрос на присоединение был принят!', 'system');
+    });
+
+    connection.on("UserAccepted", (adminName, acceptedUserName) => {
+        addMessage('System', `${adminName} принял запрос от ${acceptedUserName}`, 'accepted-notification');
+    });
+    
+    // Функция для добавления сообщения с запросом на присоединение
+    function addJoinRequestMessage(userId, username) {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message join-request';
+        messageElement.innerHTML = `
+            <strong>${username}</strong> хочет присоединиться к чату.
+            <div class="request-buttons">
+                <button class="accept-btn" data-user-id="${userId}">Принять</button>
+                <button class="decline-btn" data-user-id="${userId}">Отклонить</button>
+            </div>
+        `;
+        messagesContainer.appendChild(messageElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Обработчик для кнопки "Принять"
+        messageElement.querySelector('.accept-btn').addEventListener('click', async () => {
+            try {
+                // Генерируем параметры Диффи-Хеллмана
+                const p = generatePrime(32);
+                const g = 2n;
+                const privateKey = generatePrivateKey(p);
+                const publicKey = generatePublicKey(g, privateKey, p);
+
+                await connection.invoke("Accept", chatData.roomId, userId, {
+                    p: p.toString(),
+                    g: g.toString(),
+                    publicKey: publicKey.toString()
+                });
+
+                messageElement.remove();
+
+                // Локальное уведомление для администратора
+                addMessage('System', `Вы приняли запрос от ${username}`, 'system');
+
+                sessionStorage.setItem('dhParams', JSON.stringify({
+                    p: p.toString(),
+                    g: g.toString(),
+                    privateKey: privateKey.toString(),
+                    otherPublicKey: null
+                }));
+
+            } catch (err) {
+                console.error("Error accepting user:", err);
+                addMessage('System', 'Не удалось принять пользователя: ' + err.message, 'system');
+            }
+        });
+
+        // Обработчик для кнопки "Отклонить"
+        messageElement.querySelector('.decline-btn').addEventListener('click', async () => {
+            try {
+                await connection.invoke("Decline", chatData.roomId, userId);
+                messageElement.remove();
+                addMessage('System', `Вы отклонили запрос от ${username}}`, 'system');
+            } catch (err) {
+                console.error("Error declining user:", err);
+                addMessage('System', 'Не удалось отклонить запрос: ' + err.message, 'system');
+            }
+        });
+    }
+
+    // Добавление сообщения в чат
+    function addMessage(user, text, type) {
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${type}`;
+        messageElement.innerHTML = `<strong>${user}:</strong> ${text}`;
+        messagesContainer.appendChild(messageElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Обновление списка пользователей
+    function updateUsersList(users) {
+        usersList.innerHTML = '';
+        users.forEach(user => {
+            const userItem = document.createElement('li');
+            userItem.className = 'user-item';
+            userItem.innerHTML = `
+                    <span class="user-status"></span>
+                    ${user} ${user === chatData.username ? '(Вы)' : ''}
+                `;
+            usersList.appendChild(userItem);
+        });
+        usersCount.textContent = users.length;
+    }
+
+    // Отправка сообщения
+    async function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        try {
+            await connection.invoke("SendMessage", chatData.roomId, message);
+            messageInput.value = '';
+        } catch (err) {
+            console.error("Error sending message:", err);
+            addMessage('System', 'Не удалось отправить сообщение', 'system');
+        }
+    }
+
+    // Покидание комнаты
+    async function leaveRoom() {
+        try {
+            await connection.invoke("LeaveRoom", chatData.roomId);
+            window.close();
+        } catch (err) {
+            console.error("Error leaving room:", err);
+        }
+    }
+
+    // Обработчики событий
+    sendBtn.addEventListener('click', sendMessage);
+    leaveBtn.addEventListener('click', leaveRoom);
+    copyBtn.addEventListener('click', copyInviteLink);
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    // Запуск подключения
+    startConnection();
+</script>
+</body>
+</html>

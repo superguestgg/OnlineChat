@@ -110,6 +110,7 @@
     <input type="text" id="username" placeholder="Ваше имя" required>
     <input type="text" id="roomname" placeholder="Название комнаты">
     <button id="create-room-btn">Создать комнату</button>
+    <button id="create-p-room-btn" style="background-color: #d32f2f">Создать приватную комнату</button>
 </div>
 
 <div id="rooms-loading" class="loading">Загрузка списка комнат...</div>
@@ -126,6 +127,7 @@
     const roomsContainer = document.getElementById('rooms-container');
     const loadingIndicator = document.getElementById('rooms-loading');
     const createRoomBtn = document.getElementById('create-room-btn');
+    const createPRoomBtn = document.getElementById('create-p-room-btn');
     const refreshBtn = document.getElementById('refresh-btn');
     const refreshTimer = document.getElementById('refresh-timer');
     const usernameInput = document.getElementById('username');
@@ -253,6 +255,32 @@
             }));
 
             window.open('chat.html', '_blank');
+        } catch (err) {
+            console.error("Ошибка создания комнаты:", err);
+            alert("Не удалось создать комнату: " + err.message);
+        }
+    });
+
+    createPRoomBtn.addEventListener('click', async () => {
+        const username = usernameInput.value.trim();
+        const roomName = roomnameInput.value.trim();
+
+        if (!username) {
+            alert("Пожалуйста, заполните username");
+            return;
+        }
+
+        try {
+            const result = await connection.invoke("CreateRoom", roomName, username);
+
+            // Сохраняем данные и открываем чат
+            sessionStorage.setItem('chatData', JSON.stringify({
+                roomId: result.roomId,
+                roomName: result.roomName,
+                username: username
+            }));
+
+            window.open('privateChat.html', '_blank');
         } catch (err) {
             console.error("Ошибка создания комнаты:", err);
             alert("Не удалось создать комнату: " + err.message);

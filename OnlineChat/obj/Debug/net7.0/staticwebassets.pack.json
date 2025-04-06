@@ -9,8 +9,16 @@
       "PackagePath": "staticwebassets\\chat.html"
     },
     {
+      "Id": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\dh.js",
+      "PackagePath": "staticwebassets\\dh.js"
+    },
+    {
       "Id": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\index.html",
       "PackagePath": "staticwebassets\\index.html"
+    },
+    {
+      "Id": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\privateChat.html",
+      "PackagePath": "staticwebassets\\privateChat.html"
     },
     {
       "Id": "obj\\Debug\\net7.0\\staticwebassets\\msbuild.OnlineChat.Microsoft.AspNetCore.StaticWebAssets.props",
