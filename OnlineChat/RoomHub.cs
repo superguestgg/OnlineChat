@@ -35,5 +35,3 @@ public class RoomHub : Hub
         };
     }
 }
-
-// DTO для передачи информации о комнате
