@@ -5,7 +5,7 @@ namespace OnlineChat;
 public class RoomsService
 {
     private readonly ILogger<RoomsService> _logger;
-    public readonly ConcurrentDictionary<string, ChatRoom> _rooms = new();
+    private readonly ConcurrentDictionary<string, ChatRoom> _rooms = new();
 
     public RoomsService(ILogger<RoomsService> logger)
     {
@@ -20,7 +20,7 @@ public class RoomsService
         room = new ChatRoom
         {
             Id = roomId,
-            Name = $"{name ?? roomId.Substring(0, 4)}"
+            Name = $"{(string.IsNullOrEmpty(name) ? roomId.Substring(0, 4) : name)}"
         };
         _rooms.TryAdd(roomId, room);
 
@@ -38,5 +38,10 @@ public class RoomsService
         {
             _logger.LogError("RemoveRoom {roomId}", roomId);
         }
+    }
+
+    public ChatRoom[] GetAllRooms()
+    {
+        return _rooms.Select(kv => kv.Value).ToArray();
     }
 }

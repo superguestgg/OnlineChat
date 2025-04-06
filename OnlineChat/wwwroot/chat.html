@@ -18,7 +18,8 @@
         #chat-header {
             background: #4285f4;
             color: white;
-            padding: 15px;
+            padding-left: 15px;
+            padding-right: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -40,6 +41,7 @@
 
         #sidebar {
             width: 250px;
+            max-width: 30%;
             background: #f9f9f9;
             border-right: 1px solid #ddd;
             padding: 15px;
@@ -221,13 +223,33 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 <script>
-    // Получаем данные из sessionStorage
-    const chatData = JSON.parse(sessionStorage.getItem('chatData'));
-    if (!chatData || !chatData.roomId || !chatData.username || !chatData.roomName) {
-        alert("Не удалось загрузить данные чата");
-        window.close();
+    function getRandomNumber(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
-    console.log(chatData.roomName);
+    
+    function getUrlParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return {
+            roomId: urlParams.get('room'),
+            name: urlParams.get('name') ? decodeURIComponent(urlParams.get('name')) : null
+        };
+    }
+    
+    // Получаем данные из sessionStorage
+    let chatData = JSON.parse(sessionStorage.getItem('chatData'));
+    if (!chatData || !chatData.roomId || !chatData.username) {
+        if (!chatData)
+            chatData = Object()
+        const urlParams = getUrlParams();
+        if (!urlParams.roomId || !urlParams.name) {
+            alert("Не удалось загрузить данные чата" + chatData.roomId + chatData.username + urlParams.roomId + urlParams.name);
+            window.close();
+        } else {
+            const randomNum = getRandomNumber(1, 1000000);
+            chatData.roomId = urlParams.roomId;
+            chatData.username = urlParams.name + randomNum;
+        }
+    }
 
     const connection = new signalR.HubConnectionBuilder()
         .withUrl("/chatHub")

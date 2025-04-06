@@ -17,12 +17,12 @@ public class ChatHub : Hub
     public async Task<object> JoinRoom(string roomId, string userName, string roomName)
     {
         var room = _roomsService.GetOrCreate(roomId, roomName);
-
-        if (!room.TryAddUser(Context.ConnectionId, userName))
-            throw new HubException("name reserved");
-
+        
         if (!UserRooms.TryGetValue(Context.ConnectionId, out var listRooms))
             throw new HubException("you aren't user");
+        
+        if (!room.TryAddUser(Context.ConnectionId, userName))
+            throw new HubException("name reserved");
 
         listRooms.Add(roomId);
         

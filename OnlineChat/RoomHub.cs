@@ -15,11 +15,11 @@ public class RoomHub : Hub
     // Получить все комнаты с количеством пользователей
     public IEnumerable<RoomInfo> GetAllRooms()
     {
-        return _roomsService._rooms.Select(r => new RoomInfo
+        return _roomsService.GetAllRooms().Select(r => new RoomInfo
         {
-            Id = r.Value.Id,
-            Name = r.Value.Name,
-            UserCount = r.Value.UsersNames.Count
+            Id = r.Id,
+            Name = r.Name,
+            UserCount = r.UsersNames.Count
         }).ToList();
     }
 
@@ -37,15 +37,3 @@ public class RoomHub : Hub
 }
 
 // DTO для передачи информации о комнате
-public class RoomInfo
-{
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public int UserCount { get; set; }
-}
-
-public class RoomCreationResult
-{
-    public string RoomId { get; set; }
-    public string RoomName { get; set; }
-}
