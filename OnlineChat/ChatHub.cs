@@ -38,7 +38,7 @@ public class ChatHub : Hub
 
     public async Task LeaveRoom(string roomId)
     {
-        if (_roomsService.TryGetValue(roomId, out var room) && 
+        if (_roomsService.TryGetRoom(roomId, out var room) && 
             room.Users.TryGetValue(Context.ConnectionId, out var userName))
         {
             room.RemoveUser(Context.ConnectionId);
@@ -72,7 +72,7 @@ public class ChatHub : Hub
     
     public async Task SendMessage(string roomId, string message)
     {
-        if (_roomsService.TryGetValue(roomId, out var room) && 
+        if (_roomsService.TryGetRoom(roomId, out var room) && 
             room.Users.TryGetValue(Context.ConnectionId, out var userName))
         {
             await Clients.Group(roomId).SendAsync("ReceiveMessage", userName, message);
@@ -81,7 +81,7 @@ public class ChatHub : Hub
 
     private async Task UpdateUsersList(string roomId)
     {
-        if (_roomsService.TryGetValue(roomId, out var room))
+        if (_roomsService.TryGetRoom(roomId, out var room))
         {
             await Clients.Group(roomId).SendAsync("UpdateUsers", room.UsersNames.ToList());
         }

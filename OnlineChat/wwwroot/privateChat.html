@@ -455,6 +455,46 @@
         });
     }
 
+    // Обработчик начала создания токена (получаем простое число p от сервера)
+    connection.on("StartCreatingToken", (primeNumber) => {
+        try {
+            // Преобразуем полученное простое число в BigInt
+            const p = BigInt(primeNumber);
+
+            // Генерируем базовое число g (обычно 2 или 5)
+            const g = 2n;
+
+            // Генерируем приватный ключ (случайное число от 2 до p-2)
+            const privateKey = generatePrivateKey(p);
+
+            // Вычисляем публичный ключ: publicKey = g^privateKey mod p
+            const publicKey = modPow(g, privateKey, p);
+
+            // Сохраняем приватный ключ в sessionStorage
+            sessionStorage.setItem('dhKeys', JSON.stringify({
+                p: p.toString(),
+                g: g.toString(),
+                privateKey: privateKey.toString(),
+                publicKey: publicKey.toString()
+            }));
+
+            // Отправляем публичный ключ на сервер
+            connection.invoke("SendPublicKey", publicKey.toString())
+                .catch(err => console.error("Ошибка отправки публичного ключа:", err));
+
+            console.log("Параметры Диффи-Хеллмана сгенерированы и отправлены");
+
+        } catch (err) {
+            console.error("Ошибка при создании токена:", err);
+        }
+    });
+
+    connection.on("ReceiveSharedSecret", (sharedSecret) => {
+        // Сохраняем общий секрет для дальнейшего шифрования
+        sessionStorage.setItem('sharedSecret', sharedSecret);
+        console.log("Общий секрет получен:", sharedSecret);
+    });
+
     // Добавление сообщения в чат
     function addMessage(user, text, type) {
         const messageElement = document.createElement('div');

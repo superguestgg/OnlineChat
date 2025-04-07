@@ -4,10 +4,10 @@ namespace OnlineChat;
 
 public class PrivateRoomsService
 {
-    private readonly ILogger<RoomsService> _logger;
+    private readonly ILogger<PrivateRoomsService> _logger;
     private readonly ConcurrentDictionary<string, PrivateChatRoom> _rooms = new();
 
-    public PrivateRoomsService(ILogger<RoomsService> logger)
+    public PrivateRoomsService(ILogger<PrivateRoomsService> logger)
     {
         _logger = logger;
     }

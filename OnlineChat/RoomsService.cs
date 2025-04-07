@@ -12,22 +12,22 @@ public class RoomsService
         _logger = logger;
     }
 
-    public ChatRoom GetOrCreate(string roomId, string? name)
+    public ChatRoom GetOrCreate(string roomId, string roomName)
     {
         if (_rooms.TryGetValue(roomId, out var room)) 
             return room;
-        // Если комнаты нет, создаем новую
+
         room = new ChatRoom
         {
             Id = roomId,
-            Name = $"{(string.IsNullOrEmpty(name) ? roomId.Substring(0, 4) : name)}"
+            Name = $"{(string.IsNullOrEmpty(roomName) ? roomId.Substring(0, 4) : roomName)}"
         };
         _rooms.TryAdd(roomId, room);
 
         return room;
     }
 
-    public bool TryGetValue(string roomId, out ChatRoom room)
+    public bool TryGetRoom(string roomId, out ChatRoom room)
     {
         return _rooms.TryGetValue(roomId, out room);
     }
@@ -40,8 +40,8 @@ public class RoomsService
         }
     }
 
-    public ChatRoom[] GetAllRooms()
+    public IEnumerable<ChatRoom> GetAllRooms()
     {
-        return _rooms.Select(kv => kv.Value).ToArray();
+        return _rooms.Select(kv => kv.Value);
     }
 }

@@ -78,6 +78,15 @@ public class PrivateChatHub : Hub
         await Groups.AddToGroupAsync(userId, roomId);
         await Clients.Group(roomId).SendAsync("UserJoined", userName);
         await UpdateUsersList(roomId);
+
+        var keyss = room.Users.Keys.ToArray();
+        var circle = new Dictionary<string, string>();
+        for (int i = 0; i < keyss.Length; i++)
+        {
+            circle.Add(keyss[i], keyss[(i + 1) % keyss.Length]);
+        }
+
+        await Clients.Group(roomId).SendAsync("StartCreatingToken", keys.p);
     }   
     
     public class MyClass
@@ -85,6 +94,11 @@ public class PrivateChatHub : Hub
         public string p;
         public string g;
         public string publicKey;
+    }
+
+    public async Task<object> SendPublicKey(string publicKey, int iteration = 0)
+    {
+        
     }
     
     public async Task Decline(string roomId, string userId)
