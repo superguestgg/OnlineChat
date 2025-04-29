@@ -418,7 +418,7 @@
                 const privateKey = generatePrivateKey(p);
                 const publicKey = generatePublicKey(g, privateKey, p);
 
-                await connection.invoke("Accept", chatData.roomId, userId, {
+                await connection.invoke("AcceptUserToRoom", chatData.roomId, userId, {
                     p: p.toString(),
                     g: g.toString(),
                     publicKey: publicKey.toString()
@@ -599,9 +599,10 @@
 
     // Модифицируем обработчик получения сообщений
     connection.on("ReceiveEncryptedMessage", async (sender, encryptedMessage) => {
+        let typeMessage = 'incoming';
         try {
             // Пропускаем свои собственные сообщения
-            if (sender === connection.connectionId) return;
+            if (sender === chatData.username) typeMessage = 'outgoing';
 
             const dhKeys = JSON.parse(sessionStorage.getItem('diffieHellmanSecret'));
             if (!dhKeys) {
@@ -614,7 +615,7 @@
             // Получаем имя отправителя (нужно реализовать этот метод)
 
             // Отображаем сообщение
-            addMessage(sender, decryptedMessage, 'incoming');
+            addMessage(sender, decryptedMessage, typeMessage);
         } catch (err) {
             console.error("Ошибка дешифровки:", err);
             addMessage('System', 'Не удалось расшифровать сообщение', 'system');
@@ -664,9 +665,7 @@
 
             // Отправляем зашифрованное сообщение
             await connection.invoke("SendEncryptedMessage", chatData.roomId, encryptedMessage);
-
-            // Локально показываем наше сообщение (незашифрованное)
-            addMessage(chatData.username, messageText, 'outgoing');
+            
             messageInput.value = '';
         } catch (err) {
             console.error("Ошибка отправки:", err);

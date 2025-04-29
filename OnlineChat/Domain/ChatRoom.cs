@@ -4,6 +4,10 @@ public class ChatRoom
 {
     public string Id { get; set; }
     public string Name { get; set; }
+    
+    /// <summary>
+    ///     Id to Name
+    /// </summary>
     public Dictionary<string, string> Users { get; set; } = new();
     public HashSet<string> UsersNames { get; set; } = new();
 

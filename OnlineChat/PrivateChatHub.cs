@@ -24,40 +24,8 @@ public class PrivateChatHub : Hub
             ? JoinEmptyRoom(roomId, userName, room)
             : JoinNotEmptyRoom(roomId, userName, room);
     }
-    
-    private async Task<object> JoinEmptyRoom(string roomId, string userName, ChatRoom room)
-    {
-        if (!UserRooms.TryGetValue(Context.ConnectionId, out var listRooms))
-            throw new HubException("you aren't user");
-        
-        if (!room.TryAddUser(Context.ConnectionId, userName))
-            throw new HubException("name reserved");
 
-        listRooms.Add(roomId);
-        
-        await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
-        await Clients.Group(roomId).SendAsync("UserJoined", userName);
-        await UpdateUsersList(roomId);
-        
-        return new { 
-            roomId = room.Id,
-            roomName = room.Name
-        };
-    }
-    
-    private async Task<object> JoinNotEmptyRoom(string roomId, string userName, PrivateChatRoom room)
-    {
-        room.WantJoinUser.Add(Context.ConnectionId, userName);
-
-        await Clients.Group(roomId).SendAsync("UserWantJoin", Context.ConnectionId, userName);
-        
-        return new { 
-            roomId = room.Id,
-            roomName = room.Name
-        };
-    }
-
-    public async Task Accept(string roomId, string userId, Dictionary<string, string> keys)
+    public async Task AcceptUserToRoom(string roomId, string userId, Dictionary<string, string> keys)
     {
         var room = _roomsService.GetOrCreate(roomId, "not matter");
         
@@ -73,7 +41,7 @@ public class PrivateChatHub : Hub
 
         listRooms.Add(roomId);
 
-        await Clients.Group(roomId).SendAsync("UserAccepted", Context.ConnectionId, userName);
+        await Clients.Group(roomId).SendAsync("UserAccepted", room.Users[Context.ConnectionId], userName);
         await Clients.Client(userId).SendAsync("Accepted");
         
         await Groups.AddToGroupAsync(userId, roomId);
@@ -92,7 +60,7 @@ public class PrivateChatHub : Hub
             circle.Add(userIds[i], userIds[(i + 1) % userIds.Length]);
         }
 
-        await room.IsLocked.WaitAsync();
+        await room.SemaphoreForKeyExchange.WaitAsync();
         room.Circle = circle;
         room.UsersNotFinished = room.Users.Select(k => k.Key).ToHashSet();
 
@@ -124,7 +92,7 @@ public class PrivateChatHub : Hub
         if (room.UsersNotFinished.Count == 0)
         {
             room.UsersNotFinished = null;
-            room.IsLocked.Release();
+            room.SemaphoreForKeyExchange.Release();
             room.Circle = null;
             await Clients.Group(roomId).SendAsync("KeyExchangeCompleted");
         }
@@ -194,8 +162,33 @@ public class PrivateChatHub : Hub
             Console.WriteLine(encryptedMessage);
             await Clients.Group(roomId)
                 .SendAsync("ReceiveEncryptedMessage", userName, encryptedMessage);
-            
         }
+    }
+    
+    private async Task<object> JoinEmptyRoom(string roomId, string userName, ChatRoom room)
+    {
+        if (!UserRooms.TryGetValue(Context.ConnectionId, out var listRooms))
+            throw new HubException("you aren't hub user");
+        
+        if (!room.TryAddUser(Context.ConnectionId, userName))
+            throw new HubException("name reserved");
+
+        listRooms.Add(roomId);
+        
+        await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
+        await Clients.Group(roomId).SendAsync("UserJoined", userName);
+        await UpdateUsersList(roomId);
+
+        return RoomMapper.ChatRoomToCreationResult(room);
+    }
+    
+    private async Task<object> JoinNotEmptyRoom(string roomId, string userName, PrivateChatRoom room)
+    {
+        room.WantJoinUser.Add(Context.ConnectionId, userName);
+
+        await Clients.Group(roomId).SendAsync("UserWantJoin", Context.ConnectionId, userName);
+        
+        return RoomMapper.ChatRoomToCreationResult(room);
     }
 
     private async Task UpdateUsersList(string roomId)
