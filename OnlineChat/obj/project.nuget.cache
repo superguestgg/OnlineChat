@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "qSUeBAeBG/PujClHsqpTUBTsEvle7ydHyvoIxT1HSW3wBP11BM5udHmiM5k/tv4c/1w852WNqaq2OXZ6KuQfvg==",
+  "dgSpecHash": "0wuAT0ow9L20U6z4yKUOEJ+W5oGfB+KHMQYkAYRaYJJgNRUzotIl9LBSb7G6yP9qiTT/WYtl9dUokMpPyXVzcw==",
   "success": true,
   "projectFilePath": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\OnlineChat.csproj",
   "expectedPackageFiles": [
@@ -42,7 +42,10 @@
     "C:\\Users\\User\\.nuget\\packages\\system.net.websockets.websocketprotocol\\5.1.0\\system.net.websockets.websocketprotocol.5.1.0.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\system.reflection.emit\\4.7.0\\system.reflection.emit.4.7.0.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\system.text.encodings.web\\8.0.0\\system.text.encodings.web.8.0.0.nupkg.sha512",
-    "C:\\Users\\User\\.nuget\\packages\\system.threading.channels\\8.0.0\\system.threading.channels.8.0.0.nupkg.sha512"
+    "C:\\Users\\User\\.nuget\\packages\\system.threading.channels\\8.0.0\\system.threading.channels.8.0.0.nupkg.sha512",
+    "C:\\Users\\User\\.nuget\\packages\\microsoft.netcore.app.runtime.linux-x64\\7.0.0\\microsoft.netcore.app.runtime.linux-x64.7.0.0.nupkg.sha512",
+    "C:\\Users\\User\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.linux-x64\\7.0.0\\microsoft.aspnetcore.app.runtime.linux-x64.7.0.0.nupkg.sha512",
+    "C:\\Users\\User\\.nuget\\packages\\microsoft.netcore.app.host.linux-x64\\7.0.0\\microsoft.netcore.app.host.linux-x64.7.0.0.nupkg.sha512"
   ],
   "logs": []
 }
