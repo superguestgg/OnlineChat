@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.SignalR;
-using OnlineChat;
+using OnlineChat.Services;
+
+namespace OnlineChat;
 
 internal static class Program
 {

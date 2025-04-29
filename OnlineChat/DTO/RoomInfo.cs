@@ -1,4 +1,4 @@
-namespace OnlineChat;
+namespace OnlineChat.DTO;
 
 public class RoomInfo
 {

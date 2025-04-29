@@ -1,5 +1,6 @@
-using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
+using OnlineChat.DTO;
+using OnlineChat.Services;
 
 namespace OnlineChat;
 
@@ -12,18 +13,17 @@ public class RoomHub : Hub
         _roomsService = roomsService;
     }
     
-    // Получить все комнаты с количеством пользователей
+    /// <summary>
+    ///     Получить все комнаты с количеством пользователей
+    /// </summary>
     public IEnumerable<RoomInfo> GetAllRooms()
     {
-        return _roomsService.GetAllRooms().Select(r => new RoomInfo
-        {
-            Id = r.Id,
-            Name = r.Name,
-            UserCount = r.UsersNames.Count
-        }).ToList();
+        return _roomsService.GetAllRooms().Select(RoomMapper.ChatRoomToRoomInfo).ToList();
     }
 
-    // Создать новую комнату
+    /// <summary>
+    ///     Создать новую комнату
+    /// </summary>
     public async Task<RoomCreationResult> CreateRoom(string roomName, string creatorName)
     {
         var roomId = Guid.NewGuid().ToString();

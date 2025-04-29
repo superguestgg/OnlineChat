@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.SignalR;
-
-namespace OnlineChat;
+namespace OnlineChat.Domain;
 
 public class ChatRoom
 {
@@ -12,9 +10,8 @@ public class ChatRoom
     public bool TryAddUser(string userId, string userName)
     {
         if (UsersNames.Contains(userName))
-        {
             return false;
-        }
+        
         UsersNames.Add(userName);
         Users[userId] = userName;
         return true;
@@ -24,5 +21,10 @@ public class ChatRoom
     {
         UsersNames.Remove(Users[userId]);
         Users.Remove(userId);
+    }
+    
+    public bool CheckContainsUser(string userId)
+    {
+        return Users.ContainsKey(userId);
     }
 }

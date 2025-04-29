@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\OnlineChat.csproj": {}
+    "D:\\User\\Documents\\OnlineChat\\OnlineChat\\OnlineChat.csproj": {}
   },
   "projects": {
-    "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\OnlineChat.csproj": {
+    "D:\\User\\Documents\\OnlineChat\\OnlineChat\\OnlineChat.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\OnlineChat.csproj",
+        "projectUniqueName": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\OnlineChat.csproj",
         "projectName": "OnlineChat",
-        "projectPath": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\OnlineChat.csproj",
+        "projectPath": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\OnlineChat.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\obj\\",
+        "outputPath": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -43,6 +43,12 @@
             "Microsoft.AspNetCore.SignalR": {
               "target": "Package",
               "version": "[1.2.0, )"
+            },
+            "Riok.Mapperly": {
+              "include": "Compile, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[4.2.0, )"
             }
           },
           "imports": [

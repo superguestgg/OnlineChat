@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "IIstTlX4PKCXcMCTeuwaqCuEn+q6IsvEFhuikpkdZyE=",
+  "Hash": "WkmOU6kbuacOPGauxcBCwz6l6YYbA5BhpO2FT9Ec3lQ=",
   "Source": "OnlineChat",
   "BasePath": "_content/OnlineChat",
   "Mode": "Default",
@@ -10,17 +10,17 @@
     {
       "Name": "OnlineChat\\wwwroot",
       "Source": "OnlineChat",
-      "ContentRoot": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\",
+      "ContentRoot": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\",
       "BasePath": "_content/OnlineChat",
       "Pattern": "**"
     }
   ],
   "Assets": [
     {
-      "Identity": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\app.js",
+      "Identity": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\app.js",
       "SourceId": "OnlineChat",
       "SourceType": "Discovered",
-      "ContentRoot": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\",
+      "ContentRoot": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\",
       "BasePath": "_content/OnlineChat",
       "RelativePath": "app.js",
       "AssetKind": "All",
@@ -34,10 +34,10 @@
       "OriginalItemSpec": "wwwroot\\app.js"
     },
     {
-      "Identity": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\chat.html",
+      "Identity": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\chat.html",
       "SourceId": "OnlineChat",
       "SourceType": "Discovered",
-      "ContentRoot": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\",
+      "ContentRoot": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\",
       "BasePath": "_content/OnlineChat",
       "RelativePath": "chat.html",
       "AssetKind": "All",
@@ -51,10 +51,10 @@
       "OriginalItemSpec": "wwwroot\\chat.html"
     },
     {
-      "Identity": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\dh.js",
+      "Identity": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\dh.js",
       "SourceId": "OnlineChat",
       "SourceType": "Discovered",
-      "ContentRoot": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\",
+      "ContentRoot": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\",
       "BasePath": "_content/OnlineChat",
       "RelativePath": "dh.js",
       "AssetKind": "All",
@@ -68,10 +68,10 @@
       "OriginalItemSpec": "wwwroot\\dh.js"
     },
     {
-      "Identity": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\index.html",
+      "Identity": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\index.html",
       "SourceId": "OnlineChat",
       "SourceType": "Discovered",
-      "ContentRoot": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\",
+      "ContentRoot": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\",
       "BasePath": "_content/OnlineChat",
       "RelativePath": "index.html",
       "AssetKind": "All",
@@ -85,10 +85,10 @@
       "OriginalItemSpec": "wwwroot\\index.html"
     },
     {
-      "Identity": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\privateChat.html",
+      "Identity": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\privateChat.html",
       "SourceId": "OnlineChat",
       "SourceType": "Discovered",
-      "ContentRoot": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\",
+      "ContentRoot": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\",
       "BasePath": "_content/OnlineChat",
       "RelativePath": "privateChat.html",
       "AssetKind": "All",

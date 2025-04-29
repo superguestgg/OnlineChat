@@ -8,7 +8,8 @@
     ".NETCoreApp,Version=v7.0": {
       "OnlineChat/1.0.0": {
         "dependencies": {
-          "Microsoft.AspNetCore.SignalR": "1.2.0"
+          "Microsoft.AspNetCore.SignalR": "1.2.0",
+          "Riok.Mapperly": "4.2.0"
         },
         "runtime": {
           "OnlineChat.dll": {}
@@ -274,6 +275,7 @@
           }
         }
       },
+      "Riok.Mapperly/4.2.0": {},
       "System.Buffers/4.6.0": {},
       "System.Diagnostics.DiagnosticSource/8.0.1": {
         "runtime": {
@@ -548,6 +550,13 @@
       "sha512": "sha512-IvJe1pj7JHEsP8B8J8DwlMEx8UInrs/x+9oVY+oCD13jpLu4JbJU2WCIsMRn5C4yW9+DgkaO8uiVE5VHKjpmdQ==",
       "path": "newtonsoft.json/11.0.2",
       "hashPath": "newtonsoft.json.11.0.2.nupkg.sha512"
+    },
+    "Riok.Mapperly/4.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-gr8HJNC0eEg8k5oY6QbpGMZgu8Y4/PeA51RlI1q4HEdK/YKasuUV+4C4eR5ZNm3wYf6+UgHjR3+yl02+hNkyew==",
+      "path": "riok.mapperly/4.2.0",
+      "hashPath": "riok.mapperly.4.2.0.nupkg.sha512"
     },
     "System.Buffers/4.6.0": {
       "type": "package",

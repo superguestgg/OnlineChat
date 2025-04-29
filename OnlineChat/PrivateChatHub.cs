@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
+using OnlineChat.Domain;
+using OnlineChat.Services;
 
 namespace OnlineChat;
 
@@ -55,7 +57,7 @@ public class PrivateChatHub : Hub
         };
     }
 
-    public async Task Accept(string roomId, string userId, MyClass keys)
+    public async Task Accept(string roomId, string userId, Dictionary<string, string> keys)
     {
         var room = _roomsService.GetOrCreate(roomId, "not matter");
         
@@ -63,7 +65,6 @@ public class PrivateChatHub : Hub
             return;
         room.WantJoinUser.Remove(userId);
         
-        room.IsLocked = true;
 
         if (!UserRooms.TryGetValue(userId, out var listRooms))
             throw new HubException("he aren't user");
@@ -79,15 +80,24 @@ public class PrivateChatHub : Hub
         await Clients.Group(roomId).SendAsync("UserJoined", userName);
         await UpdateUsersList(roomId);
 
-        var keyss = room.Users.Keys.ToArray();
+        await StartKeyCreation(room, roomId, keys);
+    }
+
+    private async Task StartKeyCreation(PrivateChatRoom room, string roomId, Dictionary<string, string> keys)
+    {
+        var userIds = room.Users.Keys.ToArray();
         var circle = new Dictionary<string, string>();
-        for (int i = 0; i < keyss.Length; i++)
+        for (var i = 0; i < userIds.Length; i++)
         {
-            circle.Add(keyss[i], keyss[(i + 1) % keyss.Length]);
+            circle.Add(userIds[i], userIds[(i + 1) % userIds.Length]);
         }
 
-        await Clients.Group(roomId).SendAsync("StartCreatingToken", keys.p);
-    }   
+        await room.IsLocked.WaitAsync();
+        room.Circle = circle;
+        room.UsersNotFinished = room.Users.Select(k => k.Key).ToHashSet();
+
+        await Clients.Group(roomId).SendAsync("StartCreatingToken", keys["p"]);
+    }
     
     public class MyClass
     {
@@ -96,9 +106,28 @@ public class PrivateChatHub : Hub
         public string publicKey;
     }
 
-    public async Task<object> SendPublicKey(string publicKey, int iteration = 0)
+    public async Task SendPublicKey(string roomId, string publicKey, int iteration = 0)
     {
-        
+        var room = _roomsService.GetOrCreate(roomId, "not matter");
+
+        if (iteration <= room.Circle.Count)
+        {
+            var nextUserId = room.Circle[Context.ConnectionId];
+            await Clients.Client(nextUserId).SendAsync("ReceiveIterationKey", publicKey, iteration, roomId);
+        }
+    }
+    
+    public async Task IterationsEnded(string roomId)
+    {
+        var room = _roomsService.GetOrCreate(roomId, "not matter");
+        room.UsersNotFinished.Remove(Context.ConnectionId);
+        if (room.UsersNotFinished.Count == 0)
+        {
+            room.UsersNotFinished = null;
+            room.IsLocked.Release();
+            room.Circle = null;
+            await Clients.Group(roomId).SendAsync("KeyExchangeCompleted");
+        }
     }
     
     public async Task Decline(string roomId, string userId)
@@ -116,7 +145,7 @@ public class PrivateChatHub : Hub
 
     public async Task LeaveRoom(string roomId)
     {
-        if (_roomsService.TryGetValue(roomId, out var room) && 
+        if (_roomsService.TryGetRoom(roomId, out var room) && 
             room.Users.TryGetValue(Context.ConnectionId, out var userName))
         {
             room.RemoveUser(Context.ConnectionId);
@@ -150,16 +179,28 @@ public class PrivateChatHub : Hub
     
     public async Task SendMessage(string roomId, string message)
     {
-        if (_roomsService.TryGetValue(roomId, out var room) && 
+        if (_roomsService.TryGetRoom(roomId, out var room) && 
             room.Users.TryGetValue(Context.ConnectionId, out var userName))
         {
             await Clients.Group(roomId).SendAsync("ReceiveMessage", userName, message);
         }
     }
+    
+    public async Task SendEncryptedMessage(string roomId, string encryptedMessage)
+    {
+        if (_roomsService.TryGetRoom(roomId, out var room) && 
+            room.Users.TryGetValue(Context.ConnectionId, out var userName))
+        {
+            Console.WriteLine(encryptedMessage);
+            await Clients.Group(roomId)
+                .SendAsync("ReceiveEncryptedMessage", userName, encryptedMessage);
+            
+        }
+    }
 
     private async Task UpdateUsersList(string roomId)
     {
-        if (_roomsService.TryGetValue(roomId, out var room))
+        if (_roomsService.TryGetRoom(roomId, out var room))
         {
             await Clients.Group(roomId).SendAsync("UpdateUsers", room.UsersNames.ToList());
         }

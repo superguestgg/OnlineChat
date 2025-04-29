@@ -1,23 +1,23 @@
 {
   "Files": [
     {
-      "Id": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\app.js",
+      "Id": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\app.js",
       "PackagePath": "staticwebassets\\app.js"
     },
     {
-      "Id": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\chat.html",
+      "Id": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\chat.html",
       "PackagePath": "staticwebassets\\chat.html"
     },
     {
-      "Id": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\dh.js",
+      "Id": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\dh.js",
       "PackagePath": "staticwebassets\\dh.js"
     },
     {
-      "Id": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\index.html",
+      "Id": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\index.html",
       "PackagePath": "staticwebassets\\index.html"
     },
     {
-      "Id": "D:\\User\\Documents\\eventsproject\\tgboteventsdepartment\\OnlineChat\\OnlineChat\\wwwroot\\privateChat.html",
+      "Id": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\wwwroot\\privateChat.html",
       "PackagePath": "staticwebassets\\privateChat.html"
     },
     {

@@ -190,3 +190,99 @@ async function exampleUsage() {
 
 // Запуск примера
 exampleUsage().catch(console.error);
+
+// Функция для получения правильного ключа нужной длины
+async function prepareKey(secretKey) {
+    try {
+        // Преобразуем секретный ключ в хеш SHA-256 для гарантии длины 256 бит
+        const keyBuffer = new TextEncoder().encode(secretKey);
+        const hashedKey = await crypto.subtle.digest('SHA-256', keyBuffer);
+
+        return await crypto.subtle.importKey(
+            'raw',
+            hashedKey,
+            { name: 'AES-GCM' },
+            false,
+            ['encrypt', 'decrypt']
+        );
+    } catch (err) {
+        console.error('Key preparation error:', err);
+        throw new Error('Failed to prepare encryption key');
+    }
+}
+
+// Улучшенная функция шифрования
+async function encryptMessage(message, secretKey) {
+    try {
+        const key = await prepareKey(secretKey);
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+
+        const encrypted = await crypto.subtle.encrypt(
+            {
+                name: 'AES-GCM',
+                iv: iv
+            },
+            key,
+            new TextEncoder().encode(message)
+        );
+
+        const combined = new Uint8Array(iv.length + encrypted.byteLength);
+        combined.set(iv, 0);
+        combined.set(new Uint8Array(encrypted), iv.length);
+
+        return btoa(String.fromCharCode(...combined));
+    } catch (err) {
+        console.error('Encryption error:', err);
+        throw new Error('Message encryption failed');
+    }
+}
+
+// Улучшенная функция дешифрования
+async function decryptMessage(encryptedBase64, secretKey) {
+    try {
+        const key = await prepareKey(secretKey);
+        const encryptedData = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+        const iv = encryptedData.slice(0, 12);
+        const data = encryptedData.slice(12);
+
+        const decrypted = await crypto.subtle.decrypt(
+            {
+                name: 'AES-GCM',
+                iv: iv
+            },
+            key,
+            data
+        );
+
+        return new TextDecoder().decode(decrypted);
+    } catch (err) {
+        console.error('Decryption error:', err);
+        throw new Error('Failed to decrypt message');
+    }
+}
+// Функция отправки зашифрованного сообщения
+async function sendEncryptedMessage() {
+    const messageText = messageInput.value.trim();
+    if (!messageText) return;
+
+    try {
+        // Получаем общий секрет из sessionStorage
+        const dhKeys = JSON.parse(sessionStorage.getItem('dhKeys'));
+        if (!dhKeys?.sharedSecret) {
+            throw new Error('Shared secret not established');
+        }
+
+        // Шифруем сообщение
+        const encryptedMessage = await encryptMessage(messageText, dhKeys.sharedSecret);
+
+        // Отправляем на сервер
+        await connection.invoke("SendEncryptedMessage", chatData.roomId, encryptedMessage);
+
+        // Локально отображаем наше сообщение (без шифрования)
+        addMessage(chatData.username, messageText, 'outgoing');
+        messageInput.value = '';
+    } catch (err) {
+        console.error('Message send error:', err);
+        addMessage('System', `Failed to send message: ${err.message}`, 'system');
+    }
+}

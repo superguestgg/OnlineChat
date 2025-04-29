@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
+using OnlineChat.Services;
 
 namespace OnlineChat;
 
@@ -29,11 +30,8 @@ public class ChatHub : Hub
         await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
         await Clients.Group(roomId).SendAsync("UserJoined", userName);
         await UpdateUsersList(roomId);
-        
-        return new { 
-            roomId = room.Id,
-            roomName = room.Name
-        };
+
+        return RoomMapper.ChatRoomToCreationResult(room);
     }
 
     public async Task LeaveRoom(string roomId)

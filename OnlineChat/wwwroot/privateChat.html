@@ -479,7 +479,7 @@
             }));
 
             // Отправляем публичный ключ на сервер
-            connection.invoke("SendPublicKey", publicKey.toString())
+            connection.invoke("SendPublicKey", chatData.roomId, publicKey.toString(), 1)
                 .catch(err => console.error("Ошибка отправки публичного ключа:", err));
 
             console.log("Параметры Диффи-Хеллмана сгенерированы и отправлены");
@@ -489,10 +489,136 @@
         }
     });
 
+    connection.on("ReceiveIterationKey", (otherPublicKey, iteration, roomId) => {
+        try {
+            // Получаем текущее количество участников в комнате
+            const currentUsersCount = parseInt(document.getElementById('users-count').textContent);
+
+            // Проверяем, нужно ли продолжать итерации
+            if (iteration >= currentUsersCount + 666) {
+                // Сохраняем финальный токен
+                const dhKeys = JSON.parse(sessionStorage.getItem('dhKeys'));
+                dhKeys.finalToken = otherPublicKey;
+                sessionStorage.setItem('dhKeys', JSON.stringify(dhKeys));
+
+                // Уведомляем сервер о завершении итераций
+                connection.invoke("IterationsEnded", roomId)
+                    .then(() => console.log("Итерации завершены, отправлен запрос IterationsEnded"))
+                    .catch(err => console.error("Ошибка при отправке IterationsEnded:", err));
+            } else {
+                // Продолжаем итерационный процесс
+                IterationProcessKey(otherPublicKey, iteration, roomId);
+            }
+        } catch (err) {
+            console.error("Ошибка обработки ReceiveIterationKey:", err);
+        }
+    });
+
+    // Модифицированная функция итерационной обработки ключа
+    function IterationProcessKey(otherPublicKey, iteration, roomId) {
+        try {
+            // Получаем сохраненные параметры
+            const dhKeys = JSON.parse(sessionStorage.getItem('dhKeys'));
+            if (!dhKeys) throw new Error("DH параметры не найдены");
+
+            const p = BigInt(dhKeys.p);
+            const privateKey = BigInt(dhKeys.privateKey);
+            const receivedPublicKey = BigInt(otherPublicKey);
+
+            // Вычисляем новый токен
+            const newPublicToken = modPow(receivedPublicKey, privateKey, p);
+
+            // Обновляем сохраненные данные
+            dhKeys.publicKey = newPublicToken.toString();
+            sessionStorage.setItem('dhKeys', JSON.stringify(dhKeys));
+
+            iteration++;
+            const currentUsersCount = parseInt(document.getElementById('users-count').textContent);
+            if (iteration == currentUsersCount)
+            {           
+                // Сохраняем финальный токен
+                const dhKeys = JSON.parse(sessionStorage.getItem('dhKeys')) || {};
+                dhKeys.finalToken = newPublicToken.toString();
+                sessionStorage.setItem('dhKeys', JSON.stringify(dhKeys));
+
+                // Уведомляем сервер о завершении итераций
+                connection.invoke("IterationsEnded", roomId)
+                    .then(() => console.log("Итерации завершены, отправлен запрос IterationsEnded"))
+                    .catch(err => console.error("Ошибка при отправке IterationsEnded:", err));
+            } else {
+
+                // Отправляем на сервер с ID комнаты
+                connection.invoke("SendPublicKey", roomId, newPublicToken.toString(), iteration)
+                    .then(() => console.log(`Итерация ${iteration} отправлена для комнаты ${roomId}`))
+                    .catch(err => console.error(`Ошибка отправки ключа итерации ${iteration}:`, err));
+            }
+
+            return newPublicToken;
+        } catch (err) {
+            console.error(`Ошибка в IterationProcessKey (итерация ${iteration}):`, err);
+            throw err;
+        }
+    }
+    
+    // Генерация финального секретного ключа
+    function generateFinalSecret() {
+        const dhKeys = JSON.parse(sessionStorage.getItem('dhKeys'));
+        if (!dhKeys?.finalToken) throw new Error("Финальный токен не найден");
+        return BigInt(dhKeys.finalToken)
+        const p = BigInt(dhKeys.p);
+        const privateKey = BigInt(dhKeys.privateKey);
+        return modPow(BigInt(dhKeys.finalToken), privateKey, p);
+    }
+
+    // Обработчик завершения итераций
+    connection.on("KeyExchangeCompleted", () => {
+        try {
+            // Генерируем финальный секрет
+            const finalSecret = generateFinalSecret();
+            console.log("Общий секретный ключ:", finalSecret.toString());
+
+            // Сохраняем в localStorage
+            sessionStorage.setItem('diffieHellmanSecret', finalSecret.toString());
+
+            console.log("Общий секретный ключ сохранен:", finalSecret.toString());
+
+            // Можно добавить уведомление об успешном завершении
+            addMessage('System', 'Секретный ключ успешно сгенерирован и сохранен', 'system');
+
+        } catch (err) {
+            console.error("Ошибка при сохранении ключа:", err);
+            addMessage('System', 'Ошибка при генерации секретного ключа', 'system');
+        }
+    });
+    
     connection.on("ReceiveSharedSecret", (sharedSecret) => {
         // Сохраняем общий секрет для дальнейшего шифрования
         sessionStorage.setItem('sharedSecret', sharedSecret);
         console.log("Общий секрет получен:", sharedSecret);
+    });
+
+    // Модифицируем обработчик получения сообщений
+    connection.on("ReceiveEncryptedMessage", async (sender, encryptedMessage) => {
+        try {
+            // Пропускаем свои собственные сообщения
+            if (sender === connection.connectionId) return;
+
+            const dhKeys = JSON.parse(sessionStorage.getItem('diffieHellmanSecret'));
+            if (!dhKeys) {
+                throw new Error("Нет ключа для дешифровки");
+            }
+
+            // Дешифруем сообщение
+            const decryptedMessage = await decryptMessage(encryptedMessage, dhKeys);
+
+            // Получаем имя отправителя (нужно реализовать этот метод)
+
+            // Отображаем сообщение
+            addMessage(sender, decryptedMessage, 'incoming');
+        } catch (err) {
+            console.error("Ошибка дешифровки:", err);
+            addMessage('System', 'Не удалось расшифровать сообщение', 'system');
+        }
     });
 
     // Добавление сообщения в чат
@@ -520,16 +646,31 @@
     }
 
     // Отправка сообщения
+    // Модифицированная функция отправки сообщений
     async function sendMessage() {
-        const message = messageInput.value.trim();
-        if (!message) return;
+        const messageText = messageInput.value.trim();
+        if (!messageText) return;
 
         try {
-            await connection.invoke("SendMessage", chatData.roomId, message);
+            // Получаем общий секрет
+            const dhKeys = JSON.parse(sessionStorage.getItem('diffieHellmanSecret'));
+            console.log(dhKeys)
+            if (!dhKeys) {
+                throw new Error("Защищенное соединение не установлено");
+            }
+
+            // Шифруем сообщение
+            const encryptedMessage = await encryptMessage(messageText, dhKeys.toString());
+
+            // Отправляем зашифрованное сообщение
+            await connection.invoke("SendEncryptedMessage", chatData.roomId, encryptedMessage);
+
+            // Локально показываем наше сообщение (незашифрованное)
+            addMessage(chatData.username, messageText, 'outgoing');
             messageInput.value = '';
         } catch (err) {
-            console.error("Error sending message:", err);
-            addMessage('System', 'Не удалось отправить сообщение', 'system');
+            console.error("Ошибка отправки:", err);
+            addMessage('System', `Ошибка отправки: ${err.message}`, 'system');
         }
     }
 
