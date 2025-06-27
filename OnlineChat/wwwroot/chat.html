@@ -4,191 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чат комнаты</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: #f5f5f5;
-        }
-
-        #chat-header {
-            background: #4285f4;
-            color: white;
-            padding-left: 15px;
-            padding-right: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-
-        #header-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        #chat-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            background-color: white;
-        }
-
-        #sidebar {
-            width: 250px;
-            max-width: 30%;
-            background: #f9f9f9;
-            border-right: 1px solid #ddd;
-            padding: 15px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #messages {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            background-color: white;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            max-width: 80%;
-            word-break: break-word;
-        }
-
-        .message.system {
-            background: #e8f5e9;
-            margin: 10px auto;
-            text-align: center;
-            font-size: 0.9em;
-            color: #2e7d32;
-        }
-
-        .message.outgoing {
-            background: #e3f2fd;
-            margin-left: auto;
-        }
-
-        .message.incoming {
-            background: #f1f1f1;
-            margin-right: auto;
-        }
-
-        #input-area {
-            padding: 15px;
-            border-top: 1px solid #ddd;
-            background: white;
-            display: flex;
-        }
-
-        #message-input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1em;
-        }
-
-        #send-btn {
-            padding: 10px 20px;
-            background: #4285f4;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-
-        #send-btn:hover {
-            background: #3367d6;
-        }
-
-        .user-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            flex: 1;
-        }
-
-        .user-item {
-            padding: 8px 0;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-        }
-
-        .user-status {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #4caf50;
-            margin-right: 10px;
-        }
-
-        #invite-section {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #ddd;
-        }
-
-        #invite-controls {
-            display: flex;
-            margin-top: 10px;
-        }
-
-        #invite-link {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.9em;
-            background: #f9f9f9;
-        }
-
-        #copy-btn {
-            padding: 8px 12px;
-            background: #4285f4;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-left: 5px;
-            font-size: 0.9em;
-        }
-
-        #copy-btn:hover {
-            background: #3367d6;
-        }
-
-        #copy-success {
-            color: #2e7d32;
-            font-size: 0.8em;
-            margin-top: 5px;
-            display: none;
-        }
-
-        #leave-btn {
-            padding: 8px 15px;
-            background: #f44336;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        #leave-btn:hover {
-            background: #d32f2f;
-        }
-    </style>
+    <link rel="stylesheet" href="css/chat.css">
+    <link rel="stylesheet" href="css/chatqr.css">
 </head>
 <body>
 <div id="chat-header">
@@ -207,7 +24,19 @@
             <h4>Пригласить друзей</h4>
             <div id="invite-controls">
                 <input type="text" id="invite-link" readonly>
+            </div>
+            <div id="invite-controls2">
                 <button id="copy-btn">Копировать</button>
+                <button id="qr-btn">Показать QR</button>
+            </div>
+
+            <!-- Добавляем модальное окно для QR-кода -->
+            <div id="qr-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+                <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
+                    <h3>QR-код для приглашения</h3>
+                    <canvas id="qr-canvas"></canvas>
+                    <button id="qr-close" style="margin-top: 15px; padding: 5px 15px;">Закрыть</button>
+                </div>
             </div>
             <div id="copy-success">Ссылка скопирована в буфер обмена!</div>
         </div>
@@ -221,7 +50,9 @@
     <button id="send-btn" disabled>Отправить</button>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script src="js/signalr.min.js">
+    // https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js
+</script>
 <script>
     function getRandomNumber(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -297,6 +128,7 @@
 
             // Присоединяемся к комнате
             const roomInfo = await connection.invoke("JoinRoom", chatData.roomId, chatData.username, chatData.roomName);
+            chatData.roomName = roomInfo.roomName;
             roomTitle.textContent = roomInfo.roomName;
 
             // Устанавливаем ссылку для приглашения
@@ -393,5 +225,9 @@
     // Запуск подключения
     startConnection();
 </script>
+<script src="js/qrious.min.js">
+    // <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+</script>
+<script src="js/chatqr.js"></script>
 </body>
 </html>

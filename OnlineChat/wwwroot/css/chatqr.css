@@ -1,0 +1,46 @@
+/* Добавляем стили для QR-кода и модального окна */
+#qr-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+#qr-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+#qr-close {
+    margin-top: 15px;
+    padding: 5px 15px;
+    cursor: pointer;
+}
+
+#qr-code-img {
+    width: 200px;
+    height: 200px;
+}
+
+#qr-btn {
+    padding: 8px 12px;
+    background: white;
+    color: #4285f4;
+    border: 1px #4285f4 solid;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 5px;
+    font-size: 0.9em;
+}
+
+#qr-btn:hover {
+    background: #bbb;
+}

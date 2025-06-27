@@ -80,9 +80,10 @@ D:\User\Documents\OnlineChat\OnlineChat\obj\Debug\net7.0\staticwebassets.pack.js
 D:\User\Documents\OnlineChat\OnlineChat\obj\Debug\net7.0\staticwebassets.build.json
 D:\User\Documents\OnlineChat\OnlineChat\obj\Debug\net7.0\staticwebassets.development.json
 D:\User\Documents\OnlineChat\OnlineChat\obj\Debug\net7.0\scopedcss\bundle\OnlineChat.styles.css
-D:\User\Documents\OnlineChat\OnlineChat\obj\Debug\net7.0\OnlineChat.csproj.CopyComplete
 D:\User\Documents\OnlineChat\OnlineChat\obj\Debug\net7.0\OnlineChat.dll
 D:\User\Documents\OnlineChat\OnlineChat\obj\Debug\net7.0\refint\OnlineChat.dll
 D:\User\Documents\OnlineChat\OnlineChat\obj\Debug\net7.0\OnlineChat.pdb
 D:\User\Documents\OnlineChat\OnlineChat\obj\Debug\net7.0\OnlineChat.genruntimeconfig.cache
 D:\User\Documents\OnlineChat\OnlineChat\obj\Debug\net7.0\ref\OnlineChat.dll
+D:\User\Documents\OnlineChat\OnlineChat\obj\Debug\net7.0\OnlineChat.sourcelink.json
+D:\User\Documents\OnlineChat\OnlineChat\obj\Debug\net7.0\OnlineChat.csproj.Up2Date

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "qSUeBAeBG/PujClHsqpTUBTsEvle7ydHyvoIxT1HSW3wBP11BM5udHmiM5k/tv4c/1w852WNqaq2OXZ6KuQfvg==",
+  "dgSpecHash": "52ut0uPt7Zc=",
   "success": true,
   "projectFilePath": "D:\\User\\Documents\\OnlineChat\\OnlineChat\\OnlineChat.csproj",
   "expectedPackageFiles": [
@@ -37,12 +37,18 @@
     "C:\\Users\\User\\.nuget\\packages\\newtonsoft.json\\11.0.2\\newtonsoft.json.11.0.2.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\riok.mapperly\\4.2.0\\riok.mapperly.4.2.0.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\system.buffers\\4.6.0\\system.buffers.4.6.0.nupkg.sha512",
-    "C:\\Users\\User\\.nuget\\packages\\system.diagnostics.diagnosticsource\\8.0.1\\system.diagnostics.diagnosticsource.8.0.1.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\system.io.pipelines\\8.0.0\\system.io.pipelines.8.0.0.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\system.net.websockets.websocketprotocol\\5.1.0\\system.net.websockets.websocketprotocol.5.1.0.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\system.reflection.emit\\4.7.0\\system.reflection.emit.4.7.0.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\system.text.encodings.web\\8.0.0\\system.text.encodings.web.8.0.0.nupkg.sha512",
     "C:\\Users\\User\\.nuget\\packages\\system.threading.channels\\8.0.0\\system.threading.channels.8.0.0.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Error occurred while getting package vulnerability data: Unable to load the service index for source https://nexus.kontur.host/repository/nuget/index.json."
+    }
+  ]
 }

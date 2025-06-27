@@ -2,6 +2,11 @@
 bin/
 obj/
 
+OnlineChat/bin/
+OnlineChat/obj/
+OnlineChat/bin/*
+OnlineChat/obj/*
+
 # Каталоги публикации
 publish/
 out/
