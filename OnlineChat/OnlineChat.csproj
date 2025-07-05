@@ -27,6 +27,9 @@
       <Content Update="wwwroot\js\signalr.min.js">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
+      <Content Update="wwwroot\js\chatfiles.js">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

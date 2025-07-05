@@ -8,10 +8,12 @@ namespace OnlineChat;
 public class PrivateChatHub : Hub
 {
     private readonly PrivateRoomsService _roomsService;
+    private ILogger<PrivateChatHub> _logger;
 
-    public PrivateChatHub(PrivateRoomsService roomsService)
+    public PrivateChatHub(PrivateRoomsService roomsService, ILogger<PrivateChatHub> logger)
     {
         _roomsService = roomsService;
+        _logger = logger;
     }
     
     private static readonly ConcurrentDictionary<string, List<string>> UserRooms = new();
@@ -132,7 +134,7 @@ public class PrivateChatHub : Hub
         UserRooms.TryAdd(Context.ConnectionId, new List<string>());
         return base.OnConnectedAsync();
     }
-    
+
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         if (UserRooms.TryGetValue(Context.ConnectionId, out var roomsIds))
@@ -142,16 +144,8 @@ public class PrivateChatHub : Hub
                 await LeaveRoom(roomId);
             }
         }
+
         await base.OnDisconnectedAsync(exception);
-    }
-    
-    public async Task SendMessage(string roomId, string message)
-    {
-        if (_roomsService.TryGetRoom(roomId, out var room) && 
-            room.Users.TryGetValue(Context.ConnectionId, out var userName))
-        {
-            await Clients.Group(roomId).SendAsync("ReceiveMessage", userName, message);
-        }
     }
     
     public async Task SendEncryptedMessage(string roomId, string encryptedMessage)
@@ -197,5 +191,30 @@ public class PrivateChatHub : Hub
         {
             await Clients.Group(roomId).SendAsync("UpdateUsers", room.UsersNames.ToList());
         }
+    }
+    
+        
+    public async IAsyncEnumerable<int> StreamFile(
+        string roomId,
+        string fileId,  
+        string fileName,
+        IAsyncEnumerable<byte[]> fileStream)
+    {
+        _logger.LogInformation("StreamFile");
+        if (!_roomsService.TryGetRoom(roomId, out var room) ||
+            !room.Users.TryGetValue(Context.ConnectionId, out var userName)) yield break;
+        
+        await Clients.OthersInGroup(roomId)
+            .SendAsync("ReceiveFileStart", userName, fileId, fileName);
+
+        await foreach (var chunk in fileStream)
+        {
+            await Clients.OthersInGroup(roomId)
+                .SendAsync("ReceiveFileChunk", fileId, chunk);
+            yield return chunk.Length;
+        }
+
+        await Clients.OthersInGroup(roomId)
+            .SendAsync("ReceiveFileEnd", fileId);
     }
 }

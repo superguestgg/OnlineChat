@@ -6,6 +6,8 @@
     <title>Чат комнаты</title>
     <link rel="stylesheet" href="css/chat.css">
     <link rel="stylesheet" href="css/chatqr.css">
+    <style>
+    </style>
 </head>
 <body>
 <div id="chat-header">
@@ -31,7 +33,8 @@
             </div>
 
             <!-- Добавляем модальное окно для QR-кода -->
-            <div id="qr-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+            <div id="qr-modal"
+                 style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
                 <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
                     <h3>QR-код для приглашения</h3>
                     <canvas id="qr-canvas"></canvas>
@@ -44,28 +47,34 @@
 
     <div id="messages"></div>
 </div>
-
+<div id="active-uploads"></div>
 <div id="input-area">
     <input type="text" id="message-input" placeholder="Введите сообщение..." disabled>
     <button id="send-btn" disabled>Отправить</button>
+
+    <div id="file-controls">
+        <label for="file-input" id="file-btn" title="Выбрать файл">📎</label>
+        <button id="paste-btn" title="Вставить из буфера">📋</button>
+        <input type="file" id="file-input" style="display: none;">
+        <button id="camera-photo-btn" title="Сделать фото">📷</button>
+        <button id="camera-video-btn" title="Записать видео">🎥</button>
+    </div>
+
+    <div id="file-info" style="display: none;">
+        <div id="file-info-top">
+            <span id="file-name"></span>
+            <span id="file-percent">0%</span>
+        </div>
+        <progress id="file-progress" value="0" max="100"></progress>
+    </div>
 </div>
 
-<script src="js/signalr.min.js">
-    // https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js
+<script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js">
+    // js/signalr.min.js
 </script>
+<script src="js/chat.js"></script>
+<script src="js/chatfiles.js"></script>
 <script>
-    function getRandomNumber(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-    
-    function getUrlParams() {
-        const urlParams = new URLSearchParams(window.location.search);
-        return {
-            roomId: urlParams.get('room'),
-            name: urlParams.get('name') ? decodeURIComponent(urlParams.get('name')) : null
-        };
-    }
-    
     // Получаем данные из sessionStorage
     let chatData = JSON.parse(sessionStorage.getItem('chatData'));
     if (!chatData || !chatData.roomId || !chatData.username) {
@@ -101,26 +110,6 @@
     const copyBtn = document.getElementById('copy-btn');
     const copySuccess = document.getElementById('copy-success');
 
-    // Генерация ссылки для приглашения
-    function generateInviteLink(roomName) {
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('room', chatData.roomId);
-        currentUrl.searchParams.set('name', encodeURIComponent(roomName));
-        return currentUrl.toString();
-    }
-
-    // Копирование ссылки
-    function copyInviteLink() {
-        inviteLinkInput.select();
-        document.execCommand('copy');
-
-        // Показываем подтверждение
-        copySuccess.style.display = 'block';
-        setTimeout(() => {
-            copySuccess.style.display = 'none';
-        }, 2000);
-    }
-
     async function startConnection() {
         try {
             await connection.start();
@@ -149,6 +138,184 @@
         }
     }
 
+    const fileInput = document.getElementById("file-input");
+    const fileBtn = document.getElementById("file-btn");
+    const cameraPhotoBtn = document.getElementById("camera-photo-btn");
+    const cameraVideoBtn = document.getElementById("camera-video-btn");
+    const pasteBtn = document.getElementById("paste-btn");
+    const fileInfo = document.getElementById("file-info");
+    const fileNameLabel = document.getElementById("file-name");
+    const fileProgress = document.getElementById("file-progress");
+    const filePercent = document.getElementById("file-percent");
+
+    cameraPhotoBtn.addEventListener("click", async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({video: true});
+            const video = document.createElement("video");
+            video.srcObject = stream;
+            video.play();
+
+            // Открываем небольшой popup для фото
+            const modal = createVideoModal("Сделать фото", video, async () => {
+                // Создаем canvas с кадром
+                const canvas = document.createElement("canvas");
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(blob => {
+                    sendFile(blob, `photo_${Date.now()}.png`);
+                }, "image/png");
+
+                stream.getTracks().forEach(t => t.stop());
+            });
+
+            document.body.appendChild(modal);
+        } catch (err) {
+            alert("Не удалось получить доступ к камере.");
+            console.error(err);
+        }
+    });
+    cameraVideoBtn.addEventListener("click", async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            const video = document.createElement("video");
+            video.srcObject = stream;
+            video.play();
+
+            const mediaRecorder = new MediaRecorder(stream);
+            let chunks = [];
+
+            mediaRecorder.ondataavailable = e => chunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, {type: "video/webm"});
+                sendFile(blob, `video_${Date.now()}.webm`);
+                stream.getTracks().forEach(t => t.stop());
+                chunks = [];
+            };
+
+            // Создаем popup с кнопками записи
+            const modal = createVideoModal("Записать видео", video, () => {
+                if (mediaRecorder.state === "inactive") {
+                    mediaRecorder.start();
+                    modal.querySelector("#record-btn").textContent = "Стоп";
+                } else {
+                    mediaRecorder.stop();
+                    modal.querySelector("#record-btn").textContent = "Записать";
+                }
+            }, true);
+
+            document.body.appendChild(modal);
+        } catch (err) {
+            alert("Не удалось получить доступ к камере и микрофону.");
+            console.error(err);
+        }
+    });
+
+    pasteBtn.addEventListener("click", async () => {
+        try {
+            const items = await navigator.clipboard.read();
+            for (const item of items) {
+                for (const type of item.types) {
+                    if (type.startsWith("image/") || type.startsWith("application/")) {
+                        const blob = await item.getType(type);
+                        const fileName = `pasted-${Date.now()}.${type.split("/")[1]}`;
+                        await sendFile(blob, fileName);
+                        return;
+                    }
+                }
+            }
+
+            alert("Буфер обмена не содержит файл или изображение.");
+        } catch (err) {
+            console.error("Ошибка при вставке из буфера:", err);
+            alert("Не удалось получить доступ к буферу обмена.");
+        }
+    });
+
+    // Выбор файла
+    fileInput.addEventListener("change", async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        await sendFile(file)
+    });
+
+    const incomingFiles = new Map(); // fileId => { chunks: [], fileName }
+
+    connection.on("ReceiveFileStart", (user, fileId, fileName) => {
+        incomingFiles.set(fileId, {
+            chunks: [],
+            fileName: fileName,
+            user: user,
+            size: 0, // счётчик полученных байт
+            ui: createDownloadProgressUI(fileName, user) // создаём UI для прогресса
+        });
+    });
+
+
+    connection.on("ReceiveFileChunk", (fileId, chunk) => {
+        // Преобразуем base64 строку обратно в Uint8Array
+        if (typeof chunk === "string") {
+            chunk = Uint8Array.from(atob(chunk), c => c.charCodeAt(0));
+        }
+
+        for (const [fileId2, data] of incomingFiles) {
+            if (data && fileId2 == fileId) {
+                console.log(chunk)
+                data.chunks.push(chunk);
+                data.size += chunk.length;
+                console.log(data.size);
+                const size = data.size;
+                data.ui.progress.textContent = size >= 1048576
+                    ? `${(size / 1048576).toFixed(2)} MB загружено`
+                    : `${(size / 1024).toFixed(1)} KB загружено`;
+
+                break;
+            }
+        }
+    });
+
+    connection.on("ReceiveFileEnd", (fileId) => {
+        const data = incomingFiles.get(fileId);
+        if (!data) return;
+
+        const blob = new Blob(data.chunks);
+        const url = URL.createObjectURL(blob);
+
+        // Добавляем в чат
+        if (blob.size <= 10 * 1024 * 1024 && data.fileName.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i)) {
+            // Если файл — картинка и меньше 10 МБ, показываем её сразу
+            const img = document.createElement("img");
+            img.src = url;
+            img.alt = data.fileName;
+            img.style.maxWidth = "300px";
+            img.style.maxHeight = "300px";
+            img.style.borderRadius = "8px";
+            img.style.margin = "5px 0";
+
+            addMessage(data.user, "", "file", false);
+            const lastMessage = document.querySelector("#messages .message.file:last-child");
+            if (lastMessage) {
+                lastMessage.appendChild(img);
+            } else {
+                // Если сообщений с файлом нет, просто добавляем
+                const container = document.getElementById("messages");
+                const messageElement = document.createElement("div");
+                messageElement.className = "message file";
+                messageElement.appendChild(img);
+                container.appendChild(messageElement);
+            }
+        }
+
+        addMessage(data.user, `<a href="${url}" download="${data.fileName}">📎 ${data.fileName}</a>`, "file", false);
+
+        //data.ui.element.remove();
+
+        incomingFiles.delete(fileId);
+    });
+
     // Обработчики сообщений от сервера
     connection.on("ReceiveMessage", (user, message) => {
         addMessage(user, message, user === chatData.username ? 'outgoing' : 'incoming');
@@ -166,30 +333,6 @@
         updateUsersList(users);
     });
 
-    // Добавление сообщения в чат
-    function addMessage(user, text, type) {
-        const messageElement = document.createElement('div');
-        messageElement.className = `message ${type}`;
-        messageElement.innerHTML = `<strong>${user}:</strong> ${text}`;
-        messagesContainer.appendChild(messageElement);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    // Обновление списка пользователей
-    function updateUsersList(users) {
-        usersList.innerHTML = '';
-        users.forEach(user => {
-            const userItem = document.createElement('li');
-            userItem.className = 'user-item';
-            userItem.innerHTML = `
-                    <span class="user-status"></span>
-                    ${user} ${user === chatData.username ? '(Вы)' : ''}
-                `;
-            usersList.appendChild(userItem);
-        });
-        usersCount.textContent = users.length;
-    }
-
     // Отправка сообщения
     async function sendMessage() {
         const message = messageInput.value.trim();
@@ -201,16 +344,6 @@
         } catch (err) {
             console.error("Error sending message:", err);
             addMessage('System', 'Не удалось отправить сообщение', 'system');
-        }
-    }
-
-    // Покидание комнаты
-    async function leaveRoom() {
-        try {
-            await connection.invoke("LeaveRoom", chatData.roomId);
-            window.close();
-        } catch (err) {
-            console.error("Error leaving room:", err);
         }
     }
 
@@ -226,7 +359,7 @@
     startConnection();
 </script>
 <script src="js/qrious.min.js">
-    // <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+    // <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js">
 </script>
 <script src="js/chatqr.js"></script>
 </body>

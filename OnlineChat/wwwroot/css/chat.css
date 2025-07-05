@@ -76,6 +76,14 @@ body {
     margin-right: auto;
 }
 
+.message a {
+    color: #0066cc;
+    text-decoration: none;
+}
+.message a:hover {
+    text-decoration: underline;
+}
+
 #input-area {
     padding: 15px;
     border-top: 1px solid #ddd;
@@ -185,4 +193,70 @@ body {
 
 #leave-btn:hover {
     background: #d32f2f;
+}
+
+#file-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-left: 10px;
+}
+
+#file-btn,
+#paste-btn,
+#camera-photo-btn,
+#camera-video-btn {
+    background: #f1f1f1;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background 0.2s;
+}
+
+#file-btn:hover,
+#paste-btn:hover,
+#camera-photo-btn:hover,
+#camera-video-btn:hover {
+    background: #e0e0e0;
+}
+
+#file-info {
+    margin-top: 10px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    width: 300px;
+    font-size: 0.9em;
+}
+
+#file-info-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#file-progress {
+    width: 100%;
+    height: 12px;
+    border-radius: 5px;
+    appearance: none;
+}
+
+#file-progress::-webkit-progress-bar {
+    background-color: #eee;
+    border-radius: 5px;
+}
+
+#file-progress::-webkit-progress-value {
+    background-color: #4285f4;
+    border-radius: 5px;
+}
+
+#file-progress::-moz-progress-bar {
+    background-color: #4285f4;
+    border-radius: 5px;
 }

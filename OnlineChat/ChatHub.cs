@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+using System.Threading.Channels;
 using Microsoft.AspNetCore.SignalR;
 using OnlineChat.Services;
 
@@ -7,10 +9,12 @@ namespace OnlineChat;
 public class ChatHub : Hub
 {
     private readonly RoomsService _roomsService;
+    private ILogger<ChatHub> _logger;
 
-    public ChatHub(RoomsService roomsService)
+    public ChatHub(RoomsService roomsService, ILogger<ChatHub> logger)
     {
         _roomsService = roomsService;
+        _logger = logger;
     }
     
     private static readonly ConcurrentDictionary<string, List<string>> UserRooms = new();
@@ -83,5 +87,29 @@ public class ChatHub : Hub
         {
             await Clients.Group(roomId).SendAsync("UpdateUsers", room.UsersNames.ToList());
         }
+    }
+    
+    public async IAsyncEnumerable<int> StreamFile(
+        string roomId,
+        string fileId,  
+        string fileName,
+        IAsyncEnumerable<byte[]> fileStream)
+    {
+        _logger.LogInformation("StreamFile");
+        if (!_roomsService.TryGetRoom(roomId, out var room) ||
+            !room.Users.TryGetValue(Context.ConnectionId, out var userName)) yield break;
+        
+        await Clients.OthersInGroup(roomId)
+            .SendAsync("ReceiveFileStart", userName, fileId, fileName);
+
+        await foreach (var chunk in fileStream)
+        {
+            await Clients.OthersInGroup(roomId)
+                .SendAsync("ReceiveFileChunk", fileId, chunk);
+            yield return chunk.Length;
+        }
+
+        await Clients.OthersInGroup(roomId)
+            .SendAsync("ReceiveFileEnd", fileId);
     }
 }
