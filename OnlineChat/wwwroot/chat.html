@@ -58,6 +58,7 @@
         <input type="file" id="file-input" style="display: none;">
         <button id="camera-photo-btn" title="Сделать фото">📷</button>
         <button id="camera-video-btn" title="Записать видео">🎥</button>
+        <button id="voice-record-btn" title="Записать голосовое сообщение">🎤</button>
     </div>
 
     <div id="file-info" style="display: none;">
@@ -147,6 +148,44 @@
     const fileNameLabel = document.getElementById("file-name");
     const fileProgress = document.getElementById("file-progress");
     const filePercent = document.getElementById("file-percent");
+    const voiceBtn = document.getElementById("voice-record-btn");
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+
+    voiceBtn.addEventListener("click", async () => {
+        if (isRecording) {
+            // Остановить запись
+            mediaRecorder.stop();
+            voiceBtn.textContent = "🎤";
+            isRecording = false;
+        } else {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    sendFile(audioBlob, `voice_${Date.now()}.webm`);
+                    stream.getTracks().forEach(t => t.stop());
+                };
+
+                mediaRecorder.start();
+                voiceBtn.textContent = "⏹"; // Кнопка остановки
+                isRecording = true;
+            } catch (err) {
+                alert("Не удалось получить доступ к микрофону.");
+                console.error(err);
+            }
+        }
+    });
 
     cameraPhotoBtn.addEventListener("click", async () => {
         try {
@@ -307,7 +346,13 @@
                 messageElement.appendChild(img);
                 container.appendChild(messageElement);
             }
+        } else if (data.fileName.endsWith(".webm")) {
+            const audio = document.createElement("audio");
+            audio.controls = true;
+            audio.src = url;
+            lastMessage.appendChild(audio); // или куда тебе нужно
         }
+
 
         addMessage(data.user, `<a href="${url}" download="${data.fileName}">📎 ${data.fileName}</a>`, "file", false);
 
