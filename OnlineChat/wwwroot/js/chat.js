@@ -72,6 +72,26 @@ function updateUsersList(users) {
     usersCount.textContent = users.length;
 }
 
+// Функция для изменения имени пользователя
+async function changeUsername() {
+    const newUsername = editUsernameInput.value.trim();
+    if (!newUsername) return;
+
+    try {
+        const result = await connection.invoke("ChangeUserName", chatData.roomId, newUsername);
+        console.log(result);
+        if (result.item1) {
+            chatData.username = newUsername;
+            console.log("Имя успешно изменено");
+        } else {
+            alert("Ошибка: " + result.item2);
+        }
+    } catch (err) {
+        console.error("Ошибка при изменении имени пользователя:", err);
+        alert("Не удалось изменить имя пользователя");
+    }
+}
+
 // Покидание комнаты
 async function leaveRoom() {
     try {

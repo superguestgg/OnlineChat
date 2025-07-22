@@ -11,14 +11,25 @@
 </head>
 <body>
 <div id="chat-header">
-    <h2 id="room-title">Комната</h2>
+    <h2 id="room-title" style="cursor: pointer;">>Комната</h2>
+
     <div id="header-controls">
         <button id="leave-btn">Покинуть комнату</button>
     </div>
 </div>
+<div id="room-edit-section" style="display: none; padding: 15px; border-top: 1px solid #ddd;">
+    <input type="text" id="edit-roomname" placeholder="Новое имя комнаты">
+    <button id="save-roomname-btn">Сохранить</button>
+</div>
 
 <div id="chat-container">
     <div id="sidebar">
+        <!-- Внутри div с id="sidebar" -->
+        <div id="user-edit-section">
+            <input type="text" id="edit-username" value="Новое имя">
+            <button id="save-username-btn">Сохранить</button>
+        </div>
+
         <h3>Участники (<span id="users-count">0</span>)</h3>
         <ul class="user-list" id="users-list"></ul>
 
@@ -110,6 +121,54 @@
     const inviteLinkInput = document.getElementById('invite-link');
     const copyBtn = document.getElementById('copy-btn');
     const copySuccess = document.getElementById('copy-success');
+    // Получаем элементы UI для редактирования имени пользователя
+    const editUsernameInput = document.getElementById('edit-username');
+    editUsernameInput.value = chatData.username;
+    const saveUsernameBtn = document.getElementById('save-username-btn');
+    saveUsernameBtn.addEventListener('click', changeUsername);
+
+    // Получаем элементы UI
+    const roomEditSection = document.getElementById('room-edit-section');
+    const editRoomnameInput = document.getElementById('edit-roomname');
+    const saveRoomnameBtn = document.getElementById('save-roomname-btn');
+
+    // Обработчик клика на заголовок комнаты
+    roomTitle.addEventListener('click', () => {
+        if (roomEditSection.style.display === 'block') {
+            // Если форма видима, скрываем её
+            roomEditSection.style.display = 'none';
+        } else {
+            // Если форма не видима, показываем её
+            roomEditSection.style.display = 'block';
+            editRoomnameInput.value = roomTitle.textContent; // Устанавливаем текущее имя комнаты в поле ввода
+        }
+    });
+
+    // Функция для изменения имени комнаты
+    async function changeRoomName() {
+        const newRoomName = editRoomnameInput.value.trim();
+        if (!newRoomName) return;
+
+        try {
+            await connection.invoke("ChangeRoomName", chatData.roomId, newRoomName);
+            roomTitle.textContent = newRoomName; // Обновляем заголовок комнаты
+            roomEditSection.style.display = 'none'; // Скрываем форму редактирования
+            console.log("Имя комнаты успешно изменено");
+        } catch (err) {
+            console.error("Ошибка при изменении имени комнаты:", err);
+            alert("Не удалось изменить имя комнаты");
+        }
+    }
+
+    // Обработчик события для кнопки сохранения имени комнаты
+    saveRoomnameBtn.addEventListener('click', changeRoomName);
+
+    // Обработчик события для обновления имени комнаты на всех клиентах
+    connection.on("ChangedRoomName", (userName, newRoomName) => {
+        roomTitle.textContent = newRoomName;
+        addMessage('System', `${userName} изменил название комнаты на "${newRoomName}"`, 'system');
+    });
+
 
     async function startConnection() {
         try {
@@ -376,6 +435,18 @@
 
     connection.on("UpdateUsers", (users) => {
         updateUsersList(users);
+    });
+
+    connection.on("ChangedUserName", (oldUserName, newUserName) => {
+        addMessage('System', `${oldUserName} теперь ${newUserName}`, 'system');
+
+        // Обновляем имя пользователя в списке участников
+        const userElements = document.querySelectorAll('.user-list li');
+        userElements.forEach(element => {
+            if (element.textContent.includes(oldUserName)) {
+                element.textContent = element.textContent.replace(oldUserName, newUserName);
+            }
+        });
     });
 
     // Отправка сообщения
