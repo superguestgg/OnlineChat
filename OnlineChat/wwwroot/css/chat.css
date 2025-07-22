@@ -205,7 +205,8 @@ body {
 #file-btn,
 #paste-btn,
 #camera-photo-btn,
-#camera-video-btn {
+#camera-video-btn, 
+#voice-record-btn {
     background: #f1f1f1;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -218,7 +219,8 @@ body {
 #file-btn:hover,
 #paste-btn:hover,
 #camera-photo-btn:hover,
-#camera-video-btn:hover {
+#camera-video-btn:hover,
+#voice-record-btn:hover {
     background: #e0e0e0;
 }
 
