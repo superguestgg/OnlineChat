@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.SignalR;
 using OnlineChat.Services;
 
 namespace OnlineChat;
@@ -23,7 +24,8 @@ internal static class Program
 
     private static void ConfigureServices(this IServiceCollection serviceCollection)
     {
-        serviceCollection.AddSignalR(options => {
+        serviceCollection.AddSignalR(options =>
+        {
             options.MaximumReceiveMessageSize = 100 * 1024 * 1024; // 100MB
             options.EnableDetailedErrors = true;
             options.StreamBufferCapacity = 10; // Размер буфера для стриминга

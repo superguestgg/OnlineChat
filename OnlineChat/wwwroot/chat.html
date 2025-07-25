@@ -6,6 +6,7 @@
     <title>Чат комнаты</title>
     <link rel="stylesheet" href="css/chat.css">
     <link rel="stylesheet" href="css/chatqr.css">
+    <link rel="stylesheet" href="css/chatmobile.css" media="only screen and (max-width: 600px)">
     <style>
     </style>
 </head>
@@ -14,6 +15,7 @@
     <h2 id="room-title" style="cursor: pointer;">>Комната</h2>
 
     <div id="header-controls">
+        <button id="sidebar-toggle-btn" style="display: none;">☰</button>
         <button id="leave-btn">Покинуть комнату</button>
     </div>
 </div>
@@ -23,39 +25,42 @@
 </div>
 
 <div id="chat-container">
-    <div id="sidebar">
-        <!-- Внутри div с id="sidebar" -->
-        <div id="user-edit-section">
-            <input type="text" id="edit-username" value="Новое имя">
-            <button id="save-username-btn">Сохранить</button>
-        </div>
-
-        <h3>Участники (<span id="users-count">0</span>)</h3>
-        <ul class="user-list" id="users-list"></ul>
-
-        <div id="invite-section">
-            <h4>Пригласить друзей</h4>
-            <div id="invite-controls">
-                <input type="text" id="invite-link" readonly>
-            </div>
-            <div id="invite-controls2">
-                <button id="copy-btn">Копировать</button>
-                <button id="qr-btn">Показать QR</button>
+    <div id="sidebar-overlay" style="display: none;"></div>
+    <div id="sidebar-wrapper">
+        <div id="sidebar">
+            <button id="sidebar-close-btn" style="display: none;">×</button>
+            <!-- Внутри div с id="sidebar" -->
+            <div id="user-edit-section">
+                <input type="text" id="edit-username" value="Новое имя">
+                <button id="save-username-btn">Сохранить</button>
             </div>
 
-            <!-- Добавляем модальное окно для QR-кода -->
-            <div id="qr-modal"
-                 style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
-                <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
-                    <h3>QR-код для приглашения</h3>
-                    <canvas id="qr-canvas"></canvas>
-                    <button id="qr-close" style="margin-top: 15px; padding: 5px 15px;">Закрыть</button>
+            <h3>Участники (<span id="users-count">0</span>)</h3>
+            <ul class="user-list" id="users-list"></ul>
+
+            <div id="invite-section">
+                <h4>Пригласить друзей</h4>
+                <div id="invite-controls">
+                    <input type="text" id="invite-link" readonly>
                 </div>
+                <div id="invite-controls2">
+                    <button id="copy-btn">Копировать</button>
+                    <button id="qr-btn">Показать QR</button>
+                </div>
+
+                <!-- Добавляем модальное окно для QR-кода -->
+                <div id="qr-modal"
+                     style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+                    <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
+                        <h3>QR-код для приглашения</h3>
+                        <canvas id="qr-canvas"></canvas>
+                        <button id="qr-close" style="margin-top: 15px; padding: 5px 15px;">Закрыть</button>
+                    </div>
+                </div>
+                <div id="copy-success">Ссылка скопирована в буфер обмена!</div>
             </div>
-            <div id="copy-success">Ссылка скопирована в буфер обмена!</div>
         </div>
     </div>
-
     <div id="messages"></div>
 </div>
 <div id="active-uploads"></div>
@@ -200,8 +205,8 @@
 
     const fileInput = document.getElementById("file-input");
     const fileBtn = document.getElementById("file-btn");
-    const cameraPhotoBtn = document.getElementById("camera-photo-btn");
-    const cameraVideoBtn = document.getElementById("camera-video-btn");
+    const cameraPhotoBtn = document.getElementById('camera-photo-btn');
+    const cameraVideoBtn = document.getElementById('camera-video-btn');
     const pasteBtn = document.getElementById("paste-btn");
     const fileInfo = document.getElementById("file-info");
     const fileNameLabel = document.getElementById("file-name");
