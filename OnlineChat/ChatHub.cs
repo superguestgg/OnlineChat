@@ -71,6 +71,33 @@ public class ChatHub : Hub
         }
         await base.OnDisconnectedAsync(exception);
     }
+
+    public async Task ChangeRoomName(string roomId, string newRoomName)
+    {
+        if (_roomsService.TryGetRoom(roomId, out var room) && 
+            room.Users.TryGetValue(Context.ConnectionId, out var userName))
+        {
+            room.Name = newRoomName;
+            await Clients.Group(roomId).SendAsync("ChangedRoomName", userName, newRoomName);
+        }
+    }
+    
+    public async Task<Tuple<bool, string>> ChangeUserName(string roomId, string newUserName)
+    {
+        if (!_roomsService.TryGetRoom(roomId, out var room) ||
+            !room.Users.TryGetValue(Context.ConnectionId, out var userName))
+            return new Tuple<bool, string>(false, "cant login to room");
+        
+        if (room.UsersNames.Contains(newUserName))
+            return new Tuple<bool, string>(false, "You already have the same name");
+        
+        room.Users[Context.ConnectionId] = newUserName;
+        room.UsersNames.Add(newUserName);
+        room.UsersNames.Remove(userName);
+
+        await Clients.Group(roomId).SendAsync("ChangedUserName", userName, newUserName);
+        return new Tuple<bool, string>(true, "successfully");
+    }
     
     public async Task SendMessage(string roomId, string message)
     {

@@ -1,3 +1,10 @@
+function randomUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
 
 function uint8ToBase64(u8Arr) {
     const CHUNK_SIZE = 0x8000; // 32kb chunks
@@ -19,7 +26,7 @@ async function sendFile(file, fileName = null) {
         fileName = file.name;
     }
 
-    const fileId = crypto.randomUUID(); // или любое другое уникальное значение
+    const fileId = randomUUID(); // или любое другое уникальное значение
 
     const chunkSize = 64 * 1024;
     const fileSize = file.size;
@@ -171,7 +178,7 @@ async function sendEncryptedFile(file, fileName = null) {
     const dhKeys = JSON.parse(sessionStorage.getItem('diffieHellmanSecret'));
     const fileNameEncrypted = await encryptMessage(fileName, dhKeys);
 
-    const fileId = crypto.randomUUID(); // или любое другое уникальное значение
+    const fileId = randomUUID(); // или любое другое уникальное значение
 
     const chunkSize = 64 * 1024;
     const fileSize = file.size;

@@ -115,10 +115,46 @@
 
 <div id="rooms-loading" class="loading">Загрузка списка комнат...</div>
 <div id="rooms-container" class="room-list"></div>
+<div id="g_id_onload"
+     data-client_id="138534674847-bs48lll21krh9dcfe5ve2bkhbtl5a32k.apps.googleusercontent.com"
+     data-context="signin"
+     data-ux_mode="popup"
+     data-callback="handleCredentialResponse"
+     data-login_uri="https://onlinechat.na4u.ru/auth/google/callback">
+</div>
+
+
+<div class="g_id_signin" data-type="standard"></div>
 
 <script src="js/signalr.min.js">
     // https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js
 </script>
+<script src="https://accounts.google.com/gsi/client" async defer>
+    function handleCredentialResponse(response) {
+        console.log("ID: " + response.credential);
+
+        // Отправляем токен на сервер
+        fetch('https://onlinechat.na4u.ru/auth/google/callback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ token: response.credential })
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                // Обработка успешного ответа от сервера
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                // Обработка ошибки
+            });
+    }
+
+
+</script>
+
 <script>
     const connection = new signalR.HubConnectionBuilder()
         .withUrl("/roomHub")

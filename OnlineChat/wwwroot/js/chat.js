@@ -72,6 +72,26 @@ function updateUsersList(users) {
     usersCount.textContent = users.length;
 }
 
+// Функция для изменения имени пользователя
+async function changeUsername() {
+    const newUsername = editUsernameInput.value.trim();
+    if (!newUsername) return;
+
+    try {
+        const result = await connection.invoke("ChangeUserName", chatData.roomId, newUsername);
+        console.log(result);
+        if (result.item1) {
+            chatData.username = newUsername;
+            console.log("Имя успешно изменено");
+        } else {
+            alert("Ошибка: " + result.item2);
+        }
+    } catch (err) {
+        console.error("Ошибка при изменении имени пользователя:", err);
+        alert("Не удалось изменить имя пользователя");
+    }
+}
+
 // Покидание комнаты
 async function leaveRoom() {
     try {
@@ -81,3 +101,54 @@ async function leaveRoom() {
         console.error("Error leaving room:", err);
     }
 }
+
+// Мобильное меню участников (sidebar)
+const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+const sidebarWrapper = document.getElementById('sidebar-wrapper');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+
+function isMobile() {
+    return window.matchMedia('(max-width: 600px)').matches;
+}
+
+function openSidebar() {
+    sidebarWrapper.style.transform = 'translateX(0)';
+    sidebarWrapper.style.boxShadow = '2px 0 10px rgba(0,0,0,0.2)';
+    sidebarOverlay.style.display = 'block';
+}
+
+function closeSidebar() {
+    sidebarWrapper.style.transform = isMobile() ? 'translateX(-100%)' : 'none';
+    sidebarOverlay.style.display = 'none';
+}
+
+function updateSidebarToggleVisibility() {
+    if (isMobile()) {
+        sidebarToggleBtn.style.display = 'inline-block';
+        if (sidebarCloseBtn) sidebarCloseBtn.style.display = 'inline-block';
+        closeSidebar();
+    } else {
+        sidebarToggleBtn.style.display = 'none';
+        if (sidebarCloseBtn) sidebarCloseBtn.style.display = 'none';
+        sidebarWrapper.style.transform = 'none';
+        sidebarOverlay.style.display = 'none';
+    }
+}
+
+sidebarToggleBtn.addEventListener('click', function() {
+    if (sidebarWrapper.style.transform === 'translateX(0px)' || sidebarWrapper.style.transform === 'translateX(0%)') {
+        closeSidebar();
+    } else {
+        openSidebar();
+    }
+});
+
+sidebarOverlay.addEventListener('click', closeSidebar);
+
+if (sidebarCloseBtn) {
+    sidebarCloseBtn.addEventListener('click', closeSidebar);
+}
+
+window.addEventListener('resize', updateSidebarToggleVisibility);
+document.addEventListener('DOMContentLoaded', updateSidebarToggleVisibility);
