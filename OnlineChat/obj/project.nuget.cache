@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "FgocKoNF6hs=",
+  "dgSpecHash": "QdZIeCJiu18=",
   "success": true,
   "projectFilePath": "/media/ilyarybin/Data/User/Documents/OnlineChat/OnlineChat/OnlineChat.csproj",
   "expectedPackageFiles": [
@@ -46,7 +46,10 @@
     "/home/ilyarybin/.nuget/packages/system.net.websockets.websocketprotocol/5.1.0/system.net.websockets.websocketprotocol.5.1.0.nupkg.sha512",
     "/home/ilyarybin/.nuget/packages/system.reflection.emit/4.7.0/system.reflection.emit.4.7.0.nupkg.sha512",
     "/home/ilyarybin/.nuget/packages/system.text.encodings.web/8.0.0/system.text.encodings.web.8.0.0.nupkg.sha512",
-    "/home/ilyarybin/.nuget/packages/system.threading.channels/8.0.0/system.threading.channels.8.0.0.nupkg.sha512"
+    "/home/ilyarybin/.nuget/packages/system.threading.channels/8.0.0/system.threading.channels.8.0.0.nupkg.sha512",
+    "/home/ilyarybin/.nuget/packages/microsoft.netcore.app.ref/8.0.21/microsoft.netcore.app.ref.8.0.21.nupkg.sha512",
+    "/home/ilyarybin/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.21/microsoft.aspnetcore.app.ref.8.0.21.nupkg.sha512",
+    "/home/ilyarybin/.nuget/packages/microsoft.netcore.app.host.linux-x64/8.0.21/microsoft.netcore.app.host.linux-x64.8.0.21.nupkg.sha512"
   ],
   "logs": []
 }

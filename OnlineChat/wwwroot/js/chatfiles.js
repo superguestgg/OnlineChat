@@ -244,22 +244,23 @@ function createDownloadProgressUI(fileName, userName) {
 
 function createVideoModal(titleText, mediaElement, onActionClick, isVideoRecording = false) {
     const modal = document.createElement("div");
-    modal.style = `
-        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        z-index: 1000; display: flex; flex-direction: column; align-items: center;
-        max-width: 90vw; max-height: 90vh;
-    `;
+    modal.className = "video-modal";
+    modal.style.boxShadow = "0 2px 8px rgba(0,0,0,0.3)";
+    modal.style.zIndex = 1000;
+    modal.style.display = "flex";
+    modal.style.flexDirection = "column";
+    modal.style.alignItems = "center";
 
     const title = document.createElement("h3");
     title.textContent = titleText;
     modal.appendChild(title);
 
     mediaElement.style.maxWidth = "100%";
-    mediaElement.style.borderRadius = "8px";
+    mediaElement.style.borderRadius = null;
     modal.appendChild(mediaElement);
 
     const btn = document.createElement("button");
+    btn.className = "modal-btn";
     btn.style.marginTop = "10px";
     btn.textContent = isVideoRecording ? "Записать" : "Сделать фото";
     btn.id = "record-btn";
@@ -270,6 +271,7 @@ function createVideoModal(titleText, mediaElement, onActionClick, isVideoRecordi
     modal.appendChild(btn);
 
     const closeBtn = document.createElement("button");
+    closeBtn.className = "modal-btn";
     closeBtn.textContent = "Закрыть";
     closeBtn.style.marginTop = "5px";
     closeBtn.onclick = () => {

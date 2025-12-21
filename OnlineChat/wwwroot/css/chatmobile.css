@@ -329,3 +329,48 @@ html, body {
 #invite-link {
     border-radius: 22px !important;
 } 
+
+.video-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 96vw !important;
+    max-width: 480px !important;
+    padding: 16px 8px !important;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    background: #fff;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1000;
+}
+.video-modal h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.15em;
+}
+.video-modal video,
+.video-modal canvas {
+    max-width: 100%;
+    border-radius: 18px;
+    margin-bottom: 10px;
+}
+.modal-btn {
+    background: #4285f4;
+    color: #fff;
+    border: none;
+    border-radius: 22px;
+    font-size: 1.15em;
+    padding: 12px 0;
+    width: 100%;
+    margin: 12px 0 0 0;
+    cursor: pointer;
+    transition: background 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.modal-btn:hover {
+    background: #3367d6;
+} 
