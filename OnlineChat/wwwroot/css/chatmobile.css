@@ -1,0 +1,376 @@
+/* Мобильные стили для chat.html */
+
+body {
+    font-size: 1.05em;
+    padding: 0;
+    margin: 0;
+    height: 100vh;
+    overflow-x: hidden;
+}
+
+html, body {
+    height: 100%;
+    min-height: 0;
+}
+
+#chat-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 6px 4px;
+    font-size: 1em;
+    min-height: unset;
+}
+
+#room-title {
+    font-size: 1.1em;
+    margin: 0 0 2px 0;
+    padding: 0;
+    line-height: 1.2;
+}
+
+#header-controls {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+#chat-container {
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+}
+
+#sidebar {
+    width: 100%;
+    max-width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+    padding: 10px 8px;
+    font-size: 1em;
+    order: 1;
+}
+
+#messages {
+    padding: 10px 5px;
+    min-height: 0;
+    max-height: none;
+    font-size: 1em;
+    order: 2;
+    flex: 1;
+}
+
+.message {
+    max-width: 95%;
+    font-size: 1em;
+    padding: 8px 6px;
+    border-radius: 22px;
+}
+
+#input-area {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 8px;
+    gap: 8px;
+    order: 3;
+}
+
+#message-input {
+    font-size: 1.1em;
+    padding: 12px 8px;
+    margin-bottom: 8px;
+}
+
+#send-btn {
+    width: 100%;
+    font-size: 1.1em;
+    padding: 12px 0;
+    margin-left: 0;
+}
+
+#file-controls {
+    gap: 10px;
+    margin-left: 0;
+    justify-content: space-between;
+}
+
+#file-btn,
+#paste-btn,
+#camera-photo-btn,
+#camera-video-btn,
+#voice-record-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    border-radius: 22px;
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    padding: 0;
+}
+#file-btn:hover,
+#paste-btn:hover,
+#camera-photo-btn:hover,
+#camera-video-btn:hover,
+#voice-record-btn:hover {
+    background: #bdbdbd;
+    color: #222;
+}
+#file-btn:active,
+#paste-btn:active,
+#camera-photo-btn:active,
+#camera-video-btn:active,
+#voice-record-btn:active {
+    background: #9e9e9e;
+    color: #fff;
+}
+
+#file-info {
+    width: 100%;
+    font-size: 0.95em;
+}
+
+#invite-section {
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+#invite-controls, #invite-controls2 {
+    flex-direction: column;
+    gap: 6px;
+}
+
+#invite-link {
+    font-size: 1em;
+    padding: 10px 6px;
+}
+
+#copy-btn {
+    width: 100%;
+    margin-left: 0;
+    font-size: 1em;
+    padding: 10px 0;
+}
+
+#user-edit-section {
+    margin-bottom: 10px;
+    padding-top: 2px;
+}
+
+#edit-username {
+    width: 100%;
+    font-size: 1em;
+    padding: 10px 6px;
+}
+
+#save-username-btn {
+    width: 100%;
+    font-size: 1em;
+    padding: 10px 0;
+}
+
+#room-edit-section {
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+#edit-roomname {
+    width: 100%;
+    font-size: 1em;
+    padding: 10px 6px;
+}
+
+#save-roomname-btn {
+    width: 100%;
+    font-size: 1em;
+    padding: 10px 0;
+}
+
+#leave-btn {
+    width: 100%;
+    font-size: 1em;
+    padding: 10px 0;
+}
+
+/* Скрыть ненужные элементы или уменьшить их */
+#qr-modal > div {
+    width: 90vw !important;
+    max-width: 350px;
+    padding: 10px !important;
+}
+
+#active-uploads {
+    font-size: 0.95em;
+}
+
+/* Уменьшить отступы у списков */
+.user-list {
+    font-size: 1em;
+}
+
+/* Убрать горизонтальный скролл */
+html, body {
+    overflow-x: hidden;
+} 
+
+/* Кнопка открытия сайдбара только на мобильных */
+#sidebar-toggle-btn {
+    font-size: 1em;
+    padding: 5px 10px;
+    margin-right: 4px;
+    border-radius: 3px;
+    background: #4285f4;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+/* Overlay для затемнения фона */
+#sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1001;
+}
+
+/* Обёртка для сайдбара */
+#sidebar-wrapper {
+    position: fixed;
+    top: 0; left: 0;
+    width: 80vw;
+    height: 100vh;
+    background: #f9f9f9;
+    z-index: 1002;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    will-change: transform;
+    overflow-y: auto;
+    border-right: 1px solid #ddd;
+}
+
+@media (max-width: 400px) {
+    #sidebar-wrapper {
+        width: 95vw;
+    }
+}
+
+/* Когда не мобильный — сайдбар обычный */
+@media (min-width: 601px) {
+    #sidebar-toggle-btn {
+        display: none !important;
+    }
+    #sidebar-overlay {
+        display: none !important;
+    }
+    #sidebar-wrapper {
+        position: static;
+        width: auto;
+        max-width: none;
+        height: auto;
+        transform: none !important;
+        box-shadow: none;
+        border-right: 1px solid #ddd;
+    }
+} 
+
+#sidebar-close-btn {
+    display: inline-block;
+    /* position: absolute; */
+    /* top: 8px; left: 8px; */
+    z-index: 10;
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    border-radius: 22px;
+    font-size: 1.4em;
+    padding: 6px 18px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transition: background 0.2s, color 0.2s;
+    margin: 8px auto 16px 8px;
+    vertical-align: middle;
+}
+#sidebar-close-btn:hover {
+    background: #888;
+    color: #fff;
+}
+@media (min-width: 601px) {
+    #sidebar-close-btn {
+        display: none !important;
+    }
+} 
+
+#send-btn,
+#copy-btn,
+#save-username-btn,
+#save-roomname-btn,
+#leave-btn,
+#qr-close {
+    border-radius: 22px !important;
+} 
+
+#qr-btn {
+    border-radius: 22px !important;
+} 
+
+#message-input,
+#edit-username,
+#edit-roomname,
+#invite-link {
+    border-radius: 22px !important;
+} 
+
+.video-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 96vw !important;
+    max-width: 480px !important;
+    padding: 16px 8px !important;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    background: #fff;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1000;
+}
+.video-modal h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.15em;
+}
+.video-modal video,
+.video-modal canvas {
+    max-width: 100%;
+    border-radius: 18px;
+    margin-bottom: 10px;
+}
+.modal-btn {
+    background: #4285f4;
+    color: #fff;
+    border: none;
+    border-radius: 22px;
+    font-size: 1.15em;
+    padding: 12px 0;
+    width: 100%;
+    margin: 12px 0 0 0;
+    cursor: pointer;
+    transition: background 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.modal-btn:hover {
+    background: #3367d6;
+} 

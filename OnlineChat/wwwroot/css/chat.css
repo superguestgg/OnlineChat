@@ -8,6 +8,10 @@ body {
     background-color: #f5f5f5;
 }
 
+html, body {
+    height: 100%;
+}
+
 #chat-header {
     background: #4285f4;
     color: white;
@@ -30,17 +34,21 @@ body {
     flex: 1;
     overflow: hidden;
     background-color: white;
+    height: 100%;
+    min-height: 0;
+    padding-bottom: 20px;
 }
 
 #sidebar {
-    width: 250px;
-    max-width: 30%;
+    width: 320px;
     background: #f9f9f9;
     border-right: 1px solid #ddd;
     padding: 15px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    min-height: 0;
 }
 
 #messages {
@@ -48,6 +56,8 @@ body {
     padding: 15px;
     overflow-y: auto;
     background-color: white;
+    height: 100%;
+    min-height: 0;
 }
 
 .message {
@@ -182,6 +192,68 @@ body {
     display: none;
 }
 
+#user-edit-section {
+    margin-bottom: 15px;
+    padding-top: 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+#edit-username {
+    width: auto;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9em;
+    background: #f9f9f9;
+    margin-bottom: 10px;
+}
+
+#save-username-btn {
+    width: 100%;
+    padding: 8px;
+    background: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+#save-username-btn:hover {
+    background: #3367d6;
+}
+
+#room-edit-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+}
+
+#edit-roomname {
+    width: calc(100% - 22px);
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9em;
+    background: #f9f9f9;
+    margin-bottom: 10px;
+}
+
+#save-roomname-btn {
+    width: 100%;
+    padding: 8px;
+    background: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+#save-roomname-btn:hover {
+    background: #3367d6;
+}
+
 #leave-btn {
     padding: 8px 15px;
     background: #f44336;
@@ -205,7 +277,8 @@ body {
 #file-btn,
 #paste-btn,
 #camera-photo-btn,
-#camera-video-btn {
+#camera-video-btn, 
+#voice-record-btn {
     background: #f1f1f1;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -218,7 +291,8 @@ body {
 #file-btn:hover,
 #paste-btn:hover,
 #camera-photo-btn:hover,
-#camera-video-btn:hover {
+#camera-video-btn:hover,
+#voice-record-btn:hover {
     background: #e0e0e0;
 }
 

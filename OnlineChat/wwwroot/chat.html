@@ -6,45 +6,61 @@
     <title>Чат комнаты</title>
     <link rel="stylesheet" href="css/chat.css">
     <link rel="stylesheet" href="css/chatqr.css">
+    <link rel="stylesheet" href="css/chatmobile.css" media="only screen and (max-width: 600px)">
     <style>
     </style>
 </head>
 <body>
 <div id="chat-header">
-    <h2 id="room-title">Комната</h2>
+    <h2 id="room-title" style="cursor: pointer;">>Комната</h2>
+
     <div id="header-controls">
+        <button id="sidebar-toggle-btn" style="display: none;">☰</button>
         <button id="leave-btn">Покинуть комнату</button>
     </div>
 </div>
+<div id="room-edit-section" style="display: none; padding: 15px; border-top: 1px solid #ddd;">
+    <input type="text" id="edit-roomname" placeholder="Новое имя комнаты">
+    <button id="save-roomname-btn">Сохранить</button>
+</div>
 
 <div id="chat-container">
-    <div id="sidebar">
-        <h3>Участники (<span id="users-count">0</span>)</h3>
-        <ul class="user-list" id="users-list"></ul>
-
-        <div id="invite-section">
-            <h4>Пригласить друзей</h4>
-            <div id="invite-controls">
-                <input type="text" id="invite-link" readonly>
-            </div>
-            <div id="invite-controls2">
-                <button id="copy-btn">Копировать</button>
-                <button id="qr-btn">Показать QR</button>
+    <div id="sidebar-overlay" style="display: none;"></div>
+    <div id="sidebar-wrapper">
+        <div id="sidebar">
+            <button id="sidebar-close-btn" style="display: none;">×</button>
+            <!-- Внутри div с id="sidebar" -->
+            <div id="user-edit-section">
+                <input type="text" id="edit-username" value="Новое имя">
+                <button id="save-username-btn">Сохранить</button>
             </div>
 
-            <!-- Добавляем модальное окно для QR-кода -->
-            <div id="qr-modal"
-                 style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
-                <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
-                    <h3>QR-код для приглашения</h3>
-                    <canvas id="qr-canvas"></canvas>
-                    <button id="qr-close" style="margin-top: 15px; padding: 5px 15px;">Закрыть</button>
+            <h3>Участники (<span id="users-count">0</span>)</h3>
+            <ul class="user-list" id="users-list"></ul>
+
+            <div id="invite-section">
+                <h4>Пригласить друзей</h4>
+                <div id="invite-controls">
+                    <input type="text" id="invite-link" readonly>
                 </div>
+                <div id="invite-controls2">
+                    <button id="copy-btn">Копировать</button>
+                    <button id="qr-btn">Показать QR</button>
+                </div>
+
+                <!-- Добавляем модальное окно для QR-кода -->
+                <div id="qr-modal"
+                     style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+                    <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
+                        <h3>QR-код для приглашения</h3>
+                        <canvas id="qr-canvas"></canvas>
+                        <button id="qr-close" style="margin-top: 15px; padding: 5px 15px;">Закрыть</button>
+                    </div>
+                </div>
+                <div id="copy-success">Ссылка скопирована в буфер обмена!</div>
             </div>
-            <div id="copy-success">Ссылка скопирована в буфер обмена!</div>
         </div>
     </div>
-
     <div id="messages"></div>
 </div>
 <div id="active-uploads"></div>
@@ -110,6 +126,54 @@
     const inviteLinkInput = document.getElementById('invite-link');
     const copyBtn = document.getElementById('copy-btn');
     const copySuccess = document.getElementById('copy-success');
+    // Получаем элементы UI для редактирования имени пользователя
+    const editUsernameInput = document.getElementById('edit-username');
+    editUsernameInput.value = chatData.username;
+    const saveUsernameBtn = document.getElementById('save-username-btn');
+    saveUsernameBtn.addEventListener('click', changeUsername);
+
+    // Получаем элементы UI
+    const roomEditSection = document.getElementById('room-edit-section');
+    const editRoomnameInput = document.getElementById('edit-roomname');
+    const saveRoomnameBtn = document.getElementById('save-roomname-btn');
+
+    // Обработчик клика на заголовок комнаты
+    roomTitle.addEventListener('click', () => {
+        if (roomEditSection.style.display === 'block') {
+            // Если форма видима, скрываем её
+            roomEditSection.style.display = 'none';
+        } else {
+            // Если форма не видима, показываем её
+            roomEditSection.style.display = 'block';
+            editRoomnameInput.value = roomTitle.textContent; // Устанавливаем текущее имя комнаты в поле ввода
+        }
+    });
+
+    // Функция для изменения имени комнаты
+    async function changeRoomName() {
+        const newRoomName = editRoomnameInput.value.trim();
+        if (!newRoomName) return;
+
+        try {
+            await connection.invoke("ChangeRoomName", chatData.roomId, newRoomName);
+            roomTitle.textContent = newRoomName; // Обновляем заголовок комнаты
+            roomEditSection.style.display = 'none'; // Скрываем форму редактирования
+            console.log("Имя комнаты успешно изменено");
+        } catch (err) {
+            console.error("Ошибка при изменении имени комнаты:", err);
+            alert("Не удалось изменить имя комнаты");
+        }
+    }
+
+    // Обработчик события для кнопки сохранения имени комнаты
+    saveRoomnameBtn.addEventListener('click', changeRoomName);
+
+    // Обработчик события для обновления имени комнаты на всех клиентах
+    connection.on("ChangedRoomName", (userName, newRoomName) => {
+        roomTitle.textContent = newRoomName;
+        addMessage('System', `${userName} изменил название комнаты на "${newRoomName}"`, 'system');
+    });
+
 
     async function startConnection() {
         try {
@@ -141,8 +205,8 @@
 
     const fileInput = document.getElementById("file-input");
     const fileBtn = document.getElementById("file-btn");
-    const cameraPhotoBtn = document.getElementById("camera-photo-btn");
-    const cameraVideoBtn = document.getElementById("camera-video-btn");
+    const cameraPhotoBtn = document.getElementById('camera-photo-btn');
+    const cameraVideoBtn = document.getElementById('camera-video-btn');
     const pasteBtn = document.getElementById("paste-btn");
     const fileInfo = document.getElementById("file-info");
     const fileNameLabel = document.getElementById("file-name");
@@ -376,6 +440,18 @@
 
     connection.on("UpdateUsers", (users) => {
         updateUsersList(users);
+    });
+
+    connection.on("ChangedUserName", (oldUserName, newUserName) => {
+        addMessage('System', `${oldUserName} теперь ${newUserName}`, 'system');
+
+        // Обновляем имя пользователя в списке участников
+        const userElements = document.querySelectorAll('.user-list li');
+        userElements.forEach(element => {
+            if (element.textContent.includes(oldUserName)) {
+                element.textContent = element.textContent.replace(oldUserName, newUserName);
+            }
+        });
     });
 
     // Отправка сообщения
