@@ -7,6 +7,9 @@ public static class Program
 {
     public static void Main(string[] args)
     {
+        Console.WriteLine(string.Join(" ", args));
+        Console.WriteLine(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Server");
         var builder = WebApplication.CreateBuilder(args);
         builder.Logging.AddConsole();
         builder.Logging.SetMinimumLevel(LogLevel.Information);
