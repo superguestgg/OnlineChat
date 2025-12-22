@@ -48,4 +48,4 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_SSH_PORT }}
           script: |
-            chmod +x ~/onlinechat.na4u.ru/app/
+            chmod +x ~/onlinechat.na4u.ru/app/publish2/OnlineChat
