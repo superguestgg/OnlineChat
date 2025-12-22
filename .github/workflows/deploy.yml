@@ -23,10 +23,10 @@ jobs:
       
       # 4. Build project as single file
       - name: Build single-file self-contained binary
-        run: |
-          dotnet publish -c Release -r linux-x64 --self-contained true -o ./publish2
         env:
           ASPNETCORE_ENVIRONMENT: Server
+        run: |
+          dotnet publish -c Release -r linux-x64 --self-contained true -o ./publish2
       
       # 5. Copy binary to server via SSH
       - name: Deploy to server
