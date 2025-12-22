@@ -10,7 +10,6 @@ public static class Program
         Console.WriteLine(string.Join(" ", args));
         Console.WriteLine(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
         Console.WriteLine("Environment.GetEnvironmentVariable(\"ASPNETCORE_ENVIRONMENT\")");
-        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Server");
         var builder = WebApplication.CreateBuilder(args);
         builder.Logging.AddConsole();
         builder.Logging.SetMinimumLevel(LogLevel.Information);
