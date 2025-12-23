@@ -1,9 +1,6 @@
 name: Deploy
 on:
   workflow_dispatch:
-    
-env:
-  ASPNETCORE_ENVIRONMENT: "Server"
 
 jobs:
   build-and-deploy:
@@ -35,7 +32,7 @@ jobs:
           source: "./publish2/**"
           target: "~/onlinechat.na4u.ru/app/"
       
-      - name: Restart remote service
+      - name: Change file rights
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -43,4 +40,4 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_SSH_PORT }}
           script: |
-            chmod +x "~/onlinechat.na4u.ru/app/publish2/OnlineChat"
+            chmod +x ~/onlinechat.na4u.ru/app/publish2/OnlineChat
