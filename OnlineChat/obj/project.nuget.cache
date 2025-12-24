@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "tZRPo7qSXdI=",
+  "dgSpecHash": "QdZIeCJiu18=",
   "success": true,
   "projectFilePath": "/media/ilyarybin/Data/User/Documents/OnlineChat/OnlineChat/OnlineChat.csproj",
   "expectedPackageFiles": [
@@ -37,7 +37,6 @@
     "/home/ilyarybin/.nuget/packages/microsoft.extensions.options/8.0.2/microsoft.extensions.options.8.0.2.nupkg.sha512",
     "/home/ilyarybin/.nuget/packages/microsoft.extensions.primitives/8.0.0/microsoft.extensions.primitives.8.0.0.nupkg.sha512",
     "/home/ilyarybin/.nuget/packages/microsoft.net.http.headers/2.3.0/microsoft.net.http.headers.2.3.0.nupkg.sha512",
-    "/home/ilyarybin/.nuget/packages/microsoft.net.illink.tasks/8.0.22/microsoft.net.illink.tasks.8.0.22.nupkg.sha512",
     "/home/ilyarybin/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512",
     "/home/ilyarybin/.nuget/packages/riok.mapperly/4.2.0/riok.mapperly.4.2.0.nupkg.sha512",
     "/home/ilyarybin/.nuget/packages/system.buffers/4.6.0/system.buffers.4.6.0.nupkg.sha512",
@@ -48,8 +47,9 @@
     "/home/ilyarybin/.nuget/packages/system.reflection.emit/4.7.0/system.reflection.emit.4.7.0.nupkg.sha512",
     "/home/ilyarybin/.nuget/packages/system.text.encodings.web/8.0.0/system.text.encodings.web.8.0.0.nupkg.sha512",
     "/home/ilyarybin/.nuget/packages/system.threading.channels/8.0.0/system.threading.channels.8.0.0.nupkg.sha512",
-    "/home/ilyarybin/.nuget/packages/microsoft.netcore.app.runtime.linux-x64/8.0.22/microsoft.netcore.app.runtime.linux-x64.8.0.22.nupkg.sha512",
-    "/home/ilyarybin/.nuget/packages/microsoft.aspnetcore.app.runtime.linux-x64/8.0.22/microsoft.aspnetcore.app.runtime.linux-x64.8.0.22.nupkg.sha512"
+    "/home/ilyarybin/.nuget/packages/microsoft.netcore.app.ref/8.0.21/microsoft.netcore.app.ref.8.0.21.nupkg.sha512",
+    "/home/ilyarybin/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.21/microsoft.aspnetcore.app.ref.8.0.21.nupkg.sha512",
+    "/home/ilyarybin/.nuget/packages/microsoft.netcore.app.host.linux-x64/8.0.21/microsoft.netcore.app.host.linux-x64.8.0.21.nupkg.sha512"
   ],
   "logs": []
 }
