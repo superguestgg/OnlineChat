@@ -386,10 +386,14 @@
 
         const blob = new Blob(data.chunks);
         const url = URL.createObjectURL(blob);
+        addMessage(data.user, `<a href="${url}" download="${data.fileName}">📎 ${data.fileName}</a>`, "file", false);
 
         // Добавляем в чат
         if (blob.size <= 10 * 1024 * 1024 && data.fileName.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i)) {
             // Если файл — картинка и меньше 10 МБ, показываем её сразу
+            const wrapper = document.createElement("div");
+            wrapper.className = "chat-image-block";
+
             const img = document.createElement("img");
             img.src = url;
             img.alt = data.fileName;
@@ -398,8 +402,22 @@
             img.style.borderRadius = "8px";
             img.style.margin = "5px 0";
 
+            const openLink = document.createElement("span");
+            openLink.textContent = "Открыть";
+            openLink.className = "chat-image-open-text";
+
+            openLink.addEventListener("click", () => {
+                openImageFullscreen(url);
+            });
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(openLink);
+
+
             addMessage(data.user, "", "file", false);
             const lastMessage = document.querySelector("#messages .message.file:last-child");
+            lastMessage.appendChild(wrapper);
+
             if (lastMessage) {
                 lastMessage.appendChild(img);
             } else {
@@ -410,21 +428,70 @@
                 messageElement.appendChild(img);
                 container.appendChild(messageElement);
             }
-        } else if (data.fileName.endsWith(".webm")) {
+        } else if (data.fileName.endsWith(".webm") && data.fileName.startsWith("voice_")) {
+
             const audio = document.createElement("audio");
+            const lastMessage = document.querySelector("#messages .message.file:last-child");
+
             audio.controls = true;
             audio.src = url;
-            lastMessage.appendChild(audio); // или куда тебе нужно
+            audio.style.display = "block";
+            audio.style.marginTop = "5px";
+            audio.style.width = "250px";
+
+            if (lastMessage) {
+                lastMessage.appendChild(audio);
+            }
+
+        } else if (data.fileName.endsWith(".webm") && data.fileName.startsWith("video_")) {
+
+            const video = document.createElement("video");
+            const lastMessage = document.querySelector("#messages .message.file:last-child");
+
+            video.controls = true;
+            video.src = url;
+            video.style.maxWidth = "300px";
+            video.style.borderRadius = "8px";
+            video.style.marginTop = "5px";
+
+            if (lastMessage) {
+                lastMessage.appendChild(video);
+            }
         }
 
 
-        addMessage(data.user, `<a href="${url}" download="${data.fileName}">📎 ${data.fileName}</a>`, "file", false);
 
         //data.ui.element.remove();
 
         incomingFiles.delete(fileId);
     });
+    function openImageFullscreen(src) {
+        const overlay = document.createElement("div");
+        overlay.className = "image-fullscreen-overlay";
 
+        const img = document.createElement("img");
+        img.src = src;
+        img.className = "image-fullscreen-img";
+
+        const closeBtn = document.createElement("button");
+        closeBtn.innerHTML = "×";
+        closeBtn.className = "image-fullscreen-close";
+
+        function closeModal() {
+            document.body.removeChild(overlay);
+        }
+
+        closeBtn.addEventListener("click", closeModal);
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay) {
+                closeModal();
+            }
+        });
+
+        overlay.appendChild(img);
+        overlay.appendChild(closeBtn);
+        document.body.appendChild(overlay);
+    }
     // Обработчики сообщений от сервера
     connection.on("ReceiveMessage", (user, message) => {
         addMessage(user, message, user === chatData.username ? 'outgoing' : 'incoming');

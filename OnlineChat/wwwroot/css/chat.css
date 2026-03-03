@@ -86,6 +86,10 @@ html, body {
     margin-right: auto;
 }
 
+.message.file {
+    background: #f1f1f1;
+}
+
 .message a {
     color: #0066cc;
     text-decoration: none;
@@ -333,4 +337,57 @@ html, body {
 #file-progress::-moz-progress-bar {
     background-color: #4285f4;
     border-radius: 5px;
+}
+
+/* Блок картинки в сообщении */
+.chat-image-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* Текст "Открыть" */
+.chat-image-open-text {
+    font-size: 0.9em;
+    color: #4285f4;
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+.chat-image-open-text:hover {
+    text-decoration: underline;
+}
+
+/* Overlay */
+.image-fullscreen-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;}
+
+/* Картинка fullscreen */
+.image-fullscreen-img {
+    max-width: 95vw;
+    max-height: 90vh;
+    border-radius: 12px;
+    min-width: 50%;
+}
+
+/* Кнопка закрытия */
+.image-fullscreen-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    font-size: 26px;
+    cursor: pointer;
+    background: white;
 }
