@@ -1,0 +1,134 @@
+using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+using System.Threading.Channels;
+using Microsoft.AspNetCore.SignalR;
+using OnlineChat.Mapping;
+using OnlineChat.Services;
+
+namespace OnlineChat.Hubs;
+
+public class ChatHub(RoomsService roomsService, ILogger<ChatHub> logger) : Hub
+{
+    private static readonly ConcurrentDictionary<string, List<string>> UserRooms = new();
+
+    public async Task<object> JoinRoom(string roomId, string userName, string roomName)
+    {
+        var room = roomsService.GetOrCreate(roomId, roomName);
+        
+        if (!UserRooms.TryGetValue(Context.ConnectionId, out var listRooms))
+            throw new HubException("you aren't user");
+        
+        if (!room.TryAddUser(Context.ConnectionId, userName))
+            throw new HubException("name reserved");
+
+        listRooms.Add(roomId);
+        
+        await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
+        await Clients.Group(roomId).SendAsync("UserJoined", userName);
+        await UpdateUsersList(roomId);
+
+        return RoomMapper.ChatRoomToCreationResult(room);
+    }
+
+    public async Task LeaveRoom(string roomId)
+    {
+        if (roomsService.TryGetRoom(roomId, out var room) && 
+            room.Users.TryGetValue(Context.ConnectionId, out var userName))
+        {
+            room.RemoveUser(Context.ConnectionId);
+            
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);
+            await Clients.Group(roomId).SendAsync("UserLeft", userName);
+            await UpdateUsersList(roomId);
+            
+            if (room.Users.Count == 0)
+                roomsService.RemoveRoom(roomId);
+        }
+    }
+    
+    public override Task OnConnectedAsync()
+    {
+        UserRooms.TryAdd(Context.ConnectionId, new List<string>());
+        return base.OnConnectedAsync();
+    }
+    
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        if (UserRooms.TryGetValue(Context.ConnectionId, out var roomsIds))
+        {
+            foreach (var roomId in roomsIds)
+            {
+                await LeaveRoom(roomId);
+            }
+        }
+        await base.OnDisconnectedAsync(exception);
+    }
+
+    public async Task ChangeRoomName(string roomId, string newRoomName)
+    {
+        if (roomsService.TryGetRoom(roomId, out var room) && 
+            room.Users.TryGetValue(Context.ConnectionId, out var userName))
+        {
+            room.Name = newRoomName;
+            await Clients.Group(roomId).SendAsync("ChangedRoomName", userName, newRoomName);
+        }
+    }
+    
+    public async Task<Tuple<bool, string>> ChangeUserName(string roomId, string newUserName)
+    {
+        if (!roomsService.TryGetRoom(roomId, out var room) ||
+            !room.Users.TryGetValue(Context.ConnectionId, out var userName))
+            return new Tuple<bool, string>(false, "cant login to room");
+        
+        if (room.UsersNames.Contains(newUserName))
+            return new Tuple<bool, string>(false, "You already have the same name");
+        
+        room.Users[Context.ConnectionId] = newUserName;
+        room.UsersNames.Add(newUserName);
+        room.UsersNames.Remove(userName);
+
+        await Clients.Group(roomId).SendAsync("ChangedUserName", userName, newUserName);
+        return new Tuple<bool, string>(true, "successfully");
+    }
+    
+    public async Task SendMessage(string roomId, string message)
+    {
+        if (roomsService.TryGetRoom(roomId, out var room) && 
+            room.Users.TryGetValue(Context.ConnectionId, out var userName))
+        {
+            await Clients.Group(roomId).SendAsync("ReceiveMessage", userName, message);
+        }
+    }
+
+    private async Task UpdateUsersList(string roomId)
+    {
+        if (roomsService.TryGetRoom(roomId, out var room))
+        {
+            await Clients.Group(roomId).SendAsync("UpdateUsers", room.UsersNames.ToList());
+        }
+    }
+    
+    public async IAsyncEnumerable<int> StreamFile(
+        string roomId,
+        string fileId,  
+        string fileName,
+        IAsyncEnumerable<byte[]> fileStream)
+    {
+        logger.LogInformation("StreamFile");
+        if (!roomsService.TryGetRoom(roomId, out var room) ||
+            !room.Users.TryGetValue(Context.ConnectionId, out var userName)) yield break;
+        
+        await Clients.OthersInGroup(roomId)
+            .SendAsync("ReceiveFileStart", userName, fileId, fileName);
+
+        await foreach (var chunk in fileStream)
+        {
+            await Clients.OthersInGroup(roomId)
+                .SendAsync("ReceiveFileChunk", fileId, chunk);
+            yield return chunk.Length;
+        }
+
+        await Clients.OthersInGroup(roomId)
+            .SendAsync("ReceiveFileEnd", fileId);
+    }
+}

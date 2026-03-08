@@ -2,6 +2,11 @@ function getRandomNumber(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function updatePageTitle() {
+    const count = usersCount.textContent;
+    document.title = `${chatData.roomName} (${count})`;
+}
+
 function getUrlParams() {
     const urlParams = new URLSearchParams(window.location.search);
     return {

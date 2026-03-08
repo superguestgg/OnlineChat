@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="css/chatmobile.css" media="only screen and (max-width: 600px)">
     <style>
     </style>
+    <script src="js/qrious.min.js">
+        // <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js">
+    </script>
 </head>
 <body>
 <div id="chat-header">
@@ -18,6 +21,10 @@
         <button id="sidebar-toggle-btn" style="display: none;">☰</button>
         <button id="leave-btn">Покинуть комнату</button>
     </div>
+</div>
+<div id="connection-status">
+    Нет подключения к серверу
+    <button id="reconnect-btn">Восстановить</button>
 </div>
 <div id="room-edit-section" style="display: none; padding: 15px; border-top: 1px solid #ddd;">
     <input type="text" id="edit-roomname" placeholder="Новое имя комнаты">
@@ -54,6 +61,7 @@
                     <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
                         <h3>QR-код для приглашения</h3>
                         <canvas id="qr-canvas"></canvas>
+                        <br>
                         <button id="qr-close" style="margin-top: 15px; padding: 5px 15px;">Закрыть</button>
                     </div>
                 </div>
@@ -507,6 +515,7 @@
 
     connection.on("UpdateUsers", (users) => {
         updateUsersList(users);
+        document.title = `${chatData.roomName} (${users.length})`;
     });
 
     connection.on("ChangedUserName", (oldUserName, newUserName) => {
@@ -545,10 +554,91 @@
 
     // Запуск подключения
     startConnection();
+    const connectionStatus = document.getElementById("connection-status");
+    const reconnectBtn = document.getElementById("reconnect-btn");
+    function showConnectionLost(){
+        connectionOverlay.style.display = "flex";
+    }
+
+    function hideConnectionLost(){
+        connectionOverlay.style.display = "none";
+    }
+    function setDisconnected(){
+
+        connectionStatus.style.display = "block";
+
+        messageInput.disabled = true;
+        sendBtn.disabled = true;
+
+    }
+
+    function setConnected(){
+
+        connectionStatus.style.display = "none";
+
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+
+    }
+    connection.onreconnecting(() => {
+        console.log("Connection lost");
+        setDisconnected();
+    });
+
+    connection.onreconnected(async () => {
+
+        console.log("Reconnected");
+
+        setConnected();
+
+        try{
+            await connection.invoke(
+                "JoinRoom",
+                chatData.roomId,
+                chatData.username,
+                chatData.roomName
+            );
+        }catch(err){
+            console.error(err);
+        }
+
+    });
+
+    connection.onclose(() => {
+        console.log("Connection closed");
+        setDisconnected();
+    });
+    reconnectBtn.addEventListener("click", async () => {
+
+        reconnectBtn.disabled = true;
+        reconnectBtn.textContent = "Подключение...";
+
+        try{
+
+            await connection.start();
+
+            await connection.invoke(
+                "JoinRoom",
+                chatData.roomId,
+                chatData.username,
+                chatData.roomName
+            );
+
+            setConnected();
+
+        }catch(err){
+
+            console.error(err);
+            alert("Не удалось восстановить соединение");
+
+        }
+
+        reconnectBtn.disabled = false;
+        reconnectBtn.textContent = "Восстановить";
+
+    });
 </script>
-<script src="js/qrious.min.js">
-    // <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js">
-</script>
+
 <script src="js/chatqr.js"></script>
 </body>
 </html>

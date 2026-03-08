@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Voice Room with Mic Toggle</title>
+    <script src="js/signalr.min.js"></script>
+</head>
+
+<body>
+
+<h2>Voice Room</h2>
+
+Room:
+<input id="room" value="test">
+<button id="join">Join</button>
+<button id="leave" style="display:none;">Leave</button>
+<button id="toggleMic" style="display:none;">Mute Mic</button>
+
+<div id="users"></div>
+
+<script>
+    let connection;
+    let localStream;
+    let peers = {};
+    let joinedRoom = null;
+    let micEnabled = true;
+
+    async function start() {
+        try {
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("/callhub")
+                .build();
+
+            await connection.start();
+
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            connection.on("UserJoined", async id => {
+                createPeer(id, true);
+            });
+
+            connection.on("ReceiveOffer", async (id, offer) => {
+                const pc = createPeer(id, false);
+                await pc.setRemoteDescription(JSON.parse(offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                connection.invoke("SendAnswer", id, JSON.stringify(answer))
+                    .catch(err => alert("Ошибка отправки ответа: " + err));
+            });
+
+            connection.on("ReceiveAnswer", async (id, answer) => {
+                if (peers[id]) {
+                    await peers[id].setRemoteDescription(JSON.parse(answer));
+                }
+            });
+
+            connection.on("ReceiveCandidate", (id, candidate) => {
+                if (peers[id]) {
+                    peers[id].addIceCandidate(JSON.parse(candidate))
+                        .catch(err => alert("Ошибка добавления ICE candidate: " + err));
+                }
+            });
+        } catch (err) {
+            alert("Ошибка инициализации SignalR или доступа к микрофону:\n" + err);
+            console.error(err);
+        }
+    }
+
+    function createPeer(id, initiator) {
+        const pc = new RTCPeerConnection({
+            iceServers:[{urls:"stun:stun.l.google.com:19302"}]
+        });
+
+        peers[id] = pc;
+
+        localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+
+        pc.ontrack = e => {
+            let audio = document.createElement("audio");
+            audio.srcObject = e.streams[0];
+            audio.autoplay = true;
+            audio.dataset.peerId = id;
+            document.getElementById("users").appendChild(audio);
+        };
+
+        pc.onicecandidate = e => {
+            if(e.candidate){
+                connection.invoke("SendCandidate", id, JSON.stringify(e.candidate))
+                    .catch(err => alert("Ошибка отправки ICE candidate: " + err));
+            }
+        };
+
+        if(initiator){
+            pc.createOffer()
+                .then(o => pc.setLocalDescription(o))
+                .then(() => connection.invoke("SendOffer", id, JSON.stringify(pc.localDescription)))
+                .catch(err => alert("Ошибка создания offer: " + err));
+        }
+
+        return pc;
+    }
+
+    // Присоединиться к комнате
+    document.getElementById("join").onclick = async () => {
+        try {
+            const room = document.getElementById("room").value;
+            if(!room) { alert("Введите имя комнаты"); return; }
+            await connection.invoke("JoinRoom", room);
+            joinedRoom = room;
+
+            // Показываем кнопки Leave и Mic Toggle только после успешного присоединения
+            document.getElementById("leave").style.display = "inline";
+            document.getElementById("toggleMic").style.display = "inline";
+
+            // Скрываем Join
+            document.getElementById("join").style.display = "none";
+            document.getElementById("room").disabled = true;
+
+        } catch(err) {
+            alert("Ошибка присоединения к комнате:\n" + err);
+        }
+    };
+
+    // Отключиться от комнаты
+    document.getElementById("leave").onclick = async () => {
+        try {
+            if(!joinedRoom) { alert("Вы не присоединены к комнате"); return; }
+
+            for (let id in peers) {
+                peers[id].close();
+            }
+            peers = {};
+
+            if(localStream) {
+                localStream.getTracks().forEach(t => t.stop());
+            }
+
+            document.getElementById("users").innerHTML = "";
+            joinedRoom = null;
+
+            document.getElementById("leave").style.display = "none";
+            document.getElementById("toggleMic").style.display = "none";
+            document.getElementById("join").style.display = "inline";
+            document.getElementById("room").disabled = false;
+            micEnabled = true;
+            document.getElementById("toggleMic").innerText = "Mute Mic";
+
+        } catch(err) {
+            alert("Ошибка отключения: " + err);
+        }
+    };
+
+    // Переключение микрофона
+    document.getElementById("toggleMic").onclick = () => {
+        if(!localStream) return;
+
+        micEnabled = !micEnabled;
+        localStream.getAudioTracks().forEach(t => t.enabled = micEnabled);
+        document.getElementById("toggleMic").innerText = micEnabled ? "Mute Mic" : "Unmute Mic";
+    };
+
+    start();
+</script>
+
+</body>
+</html>
