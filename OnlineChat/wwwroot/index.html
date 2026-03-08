@@ -4,102 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Выбор комнаты</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .room-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .room-card {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .room-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border-color: #4285f4;
-        }
-        .room-card h3 {
-            margin-top: 0;
-            color: #4285f4;
-        }
-        .room-meta {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #666;
-        }
-        .user-count {
-            font-weight: bold;
-            color: #4285f4;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-        .create-room-form {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        input, button {
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            font-size: 1em;
-        }
-        button {
-            background: #4285f4;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        button:hover {
-            background: #3367d6;
-        }
-        button:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-        }
-        .refresh-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .refresh-timer {
-            font-size: 0.9em;
-            color: #666;
-            min-width: 50px;
-        }
-    </style>
+    <link rel="stylesheet" href="css/index.css">
+    <script src="js/index.js"></script>
 </head>
 <body>
 <div class="header">
     <h1>Доступные комнаты</h1>
+    <a href="call.html" target="_blank">call</a>    
     <div class="refresh-container">
         <span class="refresh-timer" id="refresh-timer"></span>
         <button id="refresh-btn" title="Обновить список комнат">⟳ Обновить</button>
@@ -108,6 +19,7 @@
 
 <div class="create-room-form">
     <input type="text" id="username" placeholder="Ваше имя" required>
+    <button id="clear-username-btn" title="Удалить имя">✕</button>
     <input type="text" id="roomname" placeholder="Название комнаты">
     <button id="create-room-btn">Создать комнату</button>
     <button id="create-p-room-btn" style="background-color: #d32f2f">Создать приватную комнату</button>
@@ -176,102 +88,6 @@
     let lastRefreshTime = 0;
     let timerInterval;
 
-    // Загрузка комнат
-    async function loadRooms() {
-        try {
-            loadingIndicator.style.display = 'block';
-            roomsContainer.style.opacity = '0.5';
-
-            const rooms = await connection.invoke("GetAllRooms");
-            renderRooms(rooms);
-        } catch (err) {
-            console.error("Ошибка загрузки комнат:", err);
-            alert("Ошибка при загрузке списка комнат");
-        } finally {
-            loadingIndicator.style.display = 'none';
-            roomsContainer.style.opacity = '1';
-        }
-    }
-
-    // Отрисовка комнат
-    function renderRooms(rooms) {
-        roomsContainer.innerHTML = '';
-
-        if (rooms.length === 0) {
-            roomsContainer.innerHTML = '<p>Нет доступных комнат</p>';
-            return;
-        }
-
-        rooms.forEach(room => {
-            const roomCard = document.createElement('div');
-            roomCard.className = 'room-card';
-            roomCard.innerHTML = `
-                <h3>${room.name}</h3>
-                <p>ID: ${room.id}</p>
-                <div class="room-meta">
-                    <span>Участников: <span class="user-count">${room.userCount}</span></span>
-                </div>
-            `;
-
-            roomCard.addEventListener('click', () => {
-                const username = usernameInput.value.trim();
-                if (!username) {
-                    alert("Пожалуйста, введите ваше имя");
-                    return;
-                }
-
-                // Сохраняем данные и открываем чат
-                sessionStorage.setItem('chatData', JSON.stringify({
-                    roomId: room.id,
-                    username: username,
-                    roomName: room.name
-                }));
-
-                window.open('chat.html', '_blank');
-            });
-
-            roomsContainer.appendChild(roomCard);
-        });
-    }
-
-    // Обновление таймера
-    function updateTimer() {
-        const now = Date.now();
-        const timePassed = now - lastRefreshTime;
-        const timeLeft = Math.max(0, refreshCooldown - timePassed);
-
-        if (timeLeft > 0) {
-            refreshBtn.disabled = true;
-            refreshTimer.textContent = `(${Math.ceil(timeLeft / 1000)}s)`;
-        } else {
-            refreshBtn.disabled = false;
-            refreshTimer.textContent = '';
-            clearInterval(timerInterval);
-        }
-    }
-
-    // Обновление списка комнат
-    async function refreshRooms() {
-        const now = Date.now();
-        if (now - lastRefreshTime < refreshCooldown) {
-            return;
-        }
-
-        lastRefreshTime = now;
-        refreshBtn.disabled = true;
-
-        // Запускаем таймер
-        clearInterval(timerInterval);
-        timerInterval = setInterval(updateTimer, 200);
-        updateTimer();
-
-        try {
-            await loadRooms();
-        } catch (err) {
-            console.error("Ошибка обновления:", err);
-        }
-    }
-
     // Создание комнаты
     createRoomBtn.addEventListener('click', async () => {
         const username = usernameInput.value.trim();
@@ -328,19 +144,25 @@
     // Обработчик кнопки обновления
     refreshBtn.addEventListener('click', refreshRooms);
 
-    // Запуск подключения и первоначальная загрузка
-    async function start() {
-        try {
-            await connection.start();
-            console.log("Connected to RoomHub");
-            await loadRooms();
-        } catch (err) {
-            console.error("Connection error:", err);
-            setTimeout(start, 5000);
-        }
-    }
+
 
     start();
+</script>
+
+<script>
+    const clearUsernameBtn = document.getElementById('clear-username-btn');
+    
+    usernameInput.addEventListener("input", ()=>{
+        const name = usernameInput.value.trim();
+        localStorage.setItem("chatUsername", name);
+    });
+    
+    clearUsernameBtn.addEventListener("click", ()=>{
+        localStorage.removeItem("chatUsername");
+        usernameInput.value = "";
+    });
+    
+    initUsername();
 </script>
 </body>
 </html>

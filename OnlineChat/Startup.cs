@@ -1,3 +1,5 @@
+using OnlineChat.Hubs;
+
 namespace OnlineChat;
 
 public class Startup
@@ -21,6 +23,7 @@ public class Startup
             endpoints.MapHub<ChatHub>("/chatHub");
             endpoints.MapHub<PrivateChatHub>("/privateChatHub");
             endpoints.MapHub<RoomHub>("/roomHub");
+            endpoints.MapHub<CallHub>("/callhub");
         });
     }
 }
