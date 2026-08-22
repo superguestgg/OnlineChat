@@ -17,7 +17,12 @@
     let localStream = null;
     let inCall = false;
 
-// userName -> { mediaSource, sourceBuffer, audioEl, pendingChunks: [] }
+// connectionId -> { userName, mediaSource, sourceBuffer, audioEl, pendingChunks: [] }
+// Ключ — именно connectionId (стабильно уникален), а НЕ userName: два разных
+// подключения могут иметь одинаковое отображаемое имя (например, случайно
+// продублированная вкладка браузера копирует sessionStorage), и если бы
+// маршрутизация шла по имени, их аудио-потоки (два разных WebM-контейнера)
+// писались бы в один и тот же SourceBuffer и ломали бы декодирование.
     const remotePlayers = new Map();
 
 // ---------- base64 <-> ArrayBuffer ----------
@@ -82,31 +87,35 @@
 
     callConnection.onreconnected(async () => {
         if (inCall) {
-            // после реконнекта нужно заново зайти в комнату звонка
+            // После реконнекта у нас новая connectionId — с точки зрения остальных участников
+            // это будет выглядеть как "старый участник вышел, новый зашёл" (CallUserLeft для
+            // старой connectionId + CallUserJoined для новой). Это осознанный компромисс:
+            // короткий блип пересоздания плеера вместо риска перепутать потоки при дублях имён.
             await callConnection.invoke("JoinCall", chatData.roomId, chatData.username);
         }
     });
 
 // ---------- Обработчики событий звонка ----------
-    callConnection.on("CallJoined", (existingUserNames) => {
-        existingUserNames.forEach((userName) => createRemotePlayer(userName));
+    callConnection.on("CallJoined", (existingParticipants) => {
+        existingParticipants.forEach(({ connectionId, userName }) => createRemotePlayer(connectionId, userName));
         updateParticipantsUi();
     });
 
-    callConnection.on("CallUserJoined", (userName) => {
-        createRemotePlayer(userName);
+    callConnection.on("CallUserJoined", (connectionId, userName) => {
+        createRemotePlayer(connectionId, userName);
         updateParticipantsUi();
         addMessage("System", `${userName} присоединился к звонку`, "system");
     });
 
-    callConnection.on("CallUserLeft", (userName) => {
-        destroyRemotePlayer(userName);
+    callConnection.on("CallUserLeft", (connectionId) => {
+        const userName = remotePlayers.get(connectionId)?.userName ?? "Участник";
+        destroyRemotePlayer(connectionId);
         updateParticipantsUi();
         addMessage("System", `${userName} вышел из звонка`, "system");
     });
 
-    callConnection.on("ReceiveAudioChunk", (userName, chunk) => {
-        const player = remotePlayers.get(userName);
+    callConnection.on("ReceiveAudioChunk", (fromConnectionId, chunk) => {
+        const player = remotePlayers.get(fromConnectionId);
         if (!player) return;
 
         // byte[] на C# приходит в JSON-протоколе SignalR как base64-строка (как и в chatfiles.js)
@@ -156,7 +165,7 @@
         localStream?.getTracks().forEach((t) => t.stop());
         localStream = null;
 
-        remotePlayers.forEach((_, userName) => destroyRemotePlayer(userName));
+        Array.from(remotePlayers.keys()).forEach((connectionId) => destroyRemotePlayer(connectionId));
 
         inCall = false;
         callBtn.textContent = "📞 Позвонить";
@@ -183,46 +192,59 @@
     });
 
 // ---------- Воспроизведение голоса участников ----------
-    function createRemotePlayer(userName) {
-        if (remotePlayers.has(userName)) return;
+    function createRemotePlayer(connectionId, userName) {
+        if (remotePlayers.has(connectionId)) return;
 
         const audioEl = document.createElement("audio");
         audioEl.autoplay = true;
+        audioEl.dataset.connectionId = connectionId;
         audioEl.dataset.userName = userName;
 
         const mediaSource = new MediaSource();
         audioEl.src = URL.createObjectURL(mediaSource);
         document.body.appendChild(audioEl);
 
-        const player = { mediaSource, sourceBuffer: null, audioEl, pendingChunks: [] };
+        const player = { userName, mediaSource, sourceBuffer: null, audioEl, pendingChunks: [] };
 
         mediaSource.addEventListener("sourceopen", () => {
             player.sourceBuffer = mediaSource.addSourceBuffer(MIME_TYPE);
             player.sourceBuffer.addEventListener("updateend", () => flushPendingChunks(player));
         });
 
-        remotePlayers.set(userName, player);
+        remotePlayers.set(connectionId, player);
     }
 
-    function destroyRemotePlayer(userName) {
-        const player = remotePlayers.get(userName);
+    function destroyRemotePlayer(connectionId) {
+        const player = remotePlayers.get(connectionId);
         if (!player) return;
         player.audioEl.remove();
-        remotePlayers.delete(userName);
+        remotePlayers.delete(connectionId);
     }
 
     function flushPendingChunks(player) {
+        // mediaSource могла закрыться/отсоединиться — если так, не пытаемся аппендить,
+        // а тихо пересоздаём плеер заново, чтобы звук не пропал молча навсегда.
+        if (!player.mediaSource || player.mediaSource.readyState !== "open") {
+            return;
+        }
         if (!player.sourceBuffer || player.sourceBuffer.updating || player.pendingChunks.length === 0) return;
+
         const chunk = player.pendingChunks.shift();
         try {
             player.sourceBuffer.appendBuffer(chunk);
         } catch (err) {
-            console.error("Ошибка appendBuffer:", err);
+            console.error("Ошибка appendBuffer, пересоздаю плеер:", err);
+            const connectionId = player.audioEl?.dataset.connectionId;
+            const userName = player.userName;
+            if (connectionId) {
+                destroyRemotePlayer(connectionId);
+                createRemotePlayer(connectionId, userName);
+            }
         }
     }
 
     function updateParticipantsUi() {
-        const names = [chatData.username, ...Array.from(remotePlayers.keys())];
+        const names = [chatData.username, ...Array.from(remotePlayers.values()).map((p) => p.userName)];
         document.getElementById("call-participants").textContent = names.join(", ");
     }
 
