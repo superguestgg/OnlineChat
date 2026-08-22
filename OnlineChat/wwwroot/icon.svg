@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs>
+        <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#2563EB"/>
+            <stop offset="50%" stop-color="#4F46E5"/>
+            <stop offset="100%" stop-color="#7C3AED"/>
+        </linearGradient>
+
+        <linearGradient id="letters" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#2563EB"/>
+            <stop offset="100%" stop-color="#7C3AED"/>
+        </linearGradient>
+    </defs>
+
+    <!-- Background -->
+    <rect
+            width="64"
+            height="64"
+            rx="16"
+            fill="url(#background)"
+    />
+
+    <!-- Large white chat bubble -->
+    <path
+            d="M10 16
+       C10 11.5 13.8 8 19 8
+       H45
+       C50.2 8 54 11.5 54 16
+       V36
+       C54 40.5 50.2 44 45 44
+       H30
+       L16 56
+       L20 44
+       H19
+       C13.8 44 10 40.5 10 36
+       Z"
+            fill="white"
+    />
+
+    <!-- WS -->
+    <text
+            x="32"
+            y="35"
+            text-anchor="middle"
+            font-family="Arial, Helvetica, sans-serif"
+            font-size="25"
+            font-weight="900"
+            letter-spacing="-2"
+            fill="url(#letters)"
+    >WS</text>
+</svg>

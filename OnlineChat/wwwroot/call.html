@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Voice Room with Mic Toggle</title>
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
     <script src="js/signalr.min.js"></script>
 </head>
 
@@ -28,7 +29,7 @@ Room:
     async function start() {
         try {
             connection = new signalR.HubConnectionBuilder()
-                .withUrl("/callhub")
+                .withUrl("/globalcallhub")
                 .build();
 
             await connection.start();

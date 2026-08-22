@@ -21,9 +21,10 @@ public class Startup
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapHub<ChatHub>("/chatHub");
+            endpoints.MapHub<CallHub>("/callHub");
             endpoints.MapHub<PrivateChatHub>("/privateChatHub");
             endpoints.MapHub<RoomHub>("/roomHub");
-            endpoints.MapHub<CallHub>("/callhub");
+            endpoints.MapHub<GlobalCallHub>("/globalсallhub");
         });
     }
 }
