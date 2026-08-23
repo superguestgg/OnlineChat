@@ -74,6 +74,15 @@ public class CallHub(ILogger<CallHub> logger) : Hub
             .SendAsync("CallUserJoined", Context.ConnectionId, userName);
     }
 
+    /// <summary>
+    /// Ничего не делает, кроме мгновенного ответа — клиент сам замеряет round-trip время
+    /// от момента invoke до получения ответа, это и есть пинг до сервера.
+    /// </summary>
+    public Task<long> Ping()
+    {
+        return Task.FromResult(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+    }
+
     public async Task LeaveCall(string roomId)
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);

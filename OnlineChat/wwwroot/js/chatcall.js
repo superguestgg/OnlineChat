@@ -80,6 +80,39 @@
     let micMuted = false;
     let speakerMuted = false;
 
+    // ---------- Пинг ----------
+    const pingIndicator = document.createElement("span");
+    pingIndicator.id = "ping-indicator";
+    pingIndicator.style.cssText = "margin-left:auto; font-family:monospace; opacity:0.8;";
+    pingIndicator.textContent = "ping: --";
+
+    let pingIntervalId = null;
+
+    async function measurePing() {
+        if (callConnection.state !== signalR.HubConnectionState.Connected) return;
+        const start = performance.now();
+        try {
+            await callConnection.invoke("Ping");
+            const ms = Math.round(performance.now() - start);
+            pingIndicator.textContent = `ping: ${ms}мс`;
+            pingIndicator.style.color = ms < 100 ? "#2a7" : ms < 300 ? "#c90" : "#c33";
+        } catch (err) {
+            pingIndicator.textContent = "ping: ошибка";
+            pingIndicator.style.color = "#c33";
+        }
+    }
+
+    function startPinging() {
+        measurePing();
+        pingIntervalId = setInterval(measurePing, 2000);
+    }
+
+    function stopPinging() {
+        clearInterval(pingIntervalId);
+        pingIntervalId = null;
+        pingIndicator.textContent = "ping: --";
+    }
+
     const callBar = document.createElement("div");
     callBar.id = "call-bar";
     callBar.style.cssText = "display:none; padding:8px 15px; background:#eef; border-bottom:1px solid #ccd; font-size:14px; align-items:center; gap:10px;";
@@ -88,7 +121,8 @@
         Object.assign(document.createElement("span"), { textContent: "В звонке: " }),
         Object.assign(document.createElement("span"), { id: "call-participants" }),
         muteMicBtn,
-        muteSpeakerBtn
+        muteSpeakerBtn,
+        pingIndicator
     );
     document.getElementById("chat-header").insertAdjacentElement("afterend", callBar);
 
@@ -207,6 +241,7 @@
             callBtn.textContent = "📵 Завершить звонок";
             callBar.style.display = "flex";
             addMessage("System", "Вы вошли в звонок", "system");
+            startPinging();
         } catch (err) {
             console.error("Не удалось начать звонок:", err);
             if (err.name === "NotSupportedError") {
@@ -243,6 +278,7 @@
         callBtn.textContent = "📞 Позвонить";
         callBar.style.display = "none";
         addMessage("System", "Вы вышли из звонка", "system");
+        stopPinging();
     }
 
     function attachLeaveBtnHandler() {
