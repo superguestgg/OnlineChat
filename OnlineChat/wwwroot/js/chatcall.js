@@ -297,13 +297,20 @@
             console.log(`MediaSource открылся для ${userName} (${connectionId})`);
             try {
                 player.sourceBuffer = mediaSource.addSourceBuffer(MIME_TYPE);
-                player.sourceBuffer.addEventListener("updateend", () => flushPendingChunks(player));
+                player.sourceBuffer.addEventListener("updateend", () => {
+                    flushPendingChunks(player);
+                    skipBufferGap(player);
+                });
                 // на случай, если чанки уже накопились в очереди, пока sourceopen ещё не срабатывал
                 flushPendingChunks(player);
             } catch (err) {
                 console.error(`Не удалось создать SourceBuffer для ${userName}:`, err);
             }
         });
+
+        // На случай, если "waiting" наступит раньше следующего updateend (пока играем
+        // короткий init-чанк, а следующий живой ещё не пришёл) — проверяем разрыв и тут
+        audioEl.addEventListener("waiting", () => skipBufferGap(player));
 
         mediaSource.addEventListener("sourceclose", () => {
             console.warn(`MediaSource закрылся для ${userName} (${connectionId})`);
@@ -336,6 +343,23 @@
                 destroyRemotePlayer(connectionId);
                 createRemotePlayer(connectionId, userName);
             }
+        }
+    }
+
+    // Между закэшированным init-чанком (метка времени ~0, момент когда собеседник
+    // впервые заговорил) и текущими живыми чанками (метка времени "сейчас", то есть
+    // далеко впереди, если собеседник уже давно в звонке) образуется разрыв в
+    // буфере. Браузер молча стопорится на этом разрыве и ждёт непрерывности —
+    // без единой ошибки, просто вечная тишина. Перепрыгиваем плеер на начало
+    // самого свежего (последнего) диапазона, чтобы играть живой звук, а не ждать.
+    function skipBufferGap(player) {
+        const sb = player.sourceBuffer;
+        if (!sb || sb.updating || sb.buffered.length < 2) return;
+
+        const lastRangeStart = sb.buffered.start(sb.buffered.length - 1);
+        if (player.audioEl.currentTime < lastRangeStart) {
+            console.log(`Перепрыгиваю разрыв в буфере для ${player.userName}: ${player.audioEl.currentTime.toFixed(2)}s -> ${lastRangeStart.toFixed(2)}s`);
+            player.audioEl.currentTime = lastRangeStart + 0.05;
         }
     }
 
