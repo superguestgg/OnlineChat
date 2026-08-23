@@ -24,7 +24,7 @@ public class Startup
             endpoints.MapHub<CallHub>("/callHub");
             endpoints.MapHub<PrivateChatHub>("/privateChatHub");
             endpoints.MapHub<RoomHub>("/roomHub");
-            endpoints.MapHub<GlobalCallHub>("/globalсallhub");
+            endpoints.MapHub<GlobalCallHub>("/globalCallHub");
         });
     }
 }

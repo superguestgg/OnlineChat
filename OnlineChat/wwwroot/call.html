@@ -29,7 +29,7 @@ Room:
     async function start() {
         try {
             connection = new signalR.HubConnectionBuilder()
-                .withUrl("/globalcallhub")
+                .withUrl("/globalCallHub")
                 .build();
 
             await connection.start();
