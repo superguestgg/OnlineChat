@@ -64,10 +64,32 @@
     callBtn.textContent = "📞 Позвонить";
     document.getElementById("header-controls").prepend(callBtn);
 
+    // Мьют микрофона — отключает отправку своего звука остальным участникам
+    const muteMicBtn = document.createElement("button");
+    muteMicBtn.id = "mute-mic-btn";
+    muteMicBtn.textContent = "🎤";
+    muteMicBtn.title = "Выключить микрофон";
+
+    // Мьют динамика ("глухота") — отключает воспроизведение звука от остальных участников,
+    // при этом сам продолжаешь им что-то отправлять — удобно для теста в одном браузере
+    const muteSpeakerBtn = document.createElement("button");
+    muteSpeakerBtn.id = "mute-speaker-btn";
+    muteSpeakerBtn.textContent = "🔊";
+    muteSpeakerBtn.title = "Выключить звук (глухой режим)";
+
+    let micMuted = false;
+    let speakerMuted = false;
+
     const callBar = document.createElement("div");
     callBar.id = "call-bar";
-    callBar.style.cssText = "display:none; padding:8px 15px; background:#eef; border-bottom:1px solid #ccd; font-size:14px;";
-    callBar.innerHTML = `В звонке: <span id="call-participants"></span>`;
+    callBar.style.cssText = "display:none; padding:8px 15px; background:#eef; border-bottom:1px solid #ccd; font-size:14px; align-items:center; gap:10px;";
+    callBar.style.display = "none";
+    callBar.append(
+        Object.assign(document.createElement("span"), { textContent: "В звонке: " }),
+        Object.assign(document.createElement("span"), { id: "call-participants" }),
+        muteMicBtn,
+        muteSpeakerBtn
+    );
     document.getElementById("chat-header").insertAdjacentElement("afterend", callBar);
 
     callBtn.addEventListener("click", () => {
@@ -76,6 +98,25 @@
         } else {
             joinCall();
         }
+    });
+
+    muteMicBtn.addEventListener("click", () => {
+        micMuted = !micMuted;
+        // enabled=false у аудио-трека — трек продолжает существовать (MediaRecorder не рвётся),
+        // но реально не пишет звук: собеседникам будет уходить тишина, а не ошибка
+        localStream?.getAudioTracks().forEach((track) => (track.enabled = !micMuted));
+        muteMicBtn.textContent = micMuted ? "🚫🎤" : "🎤";
+        muteMicBtn.title = micMuted ? "Включить микрофон" : "Выключить микрофон";
+    });
+
+    muteSpeakerBtn.addEventListener("click", () => {
+        speakerMuted = !speakerMuted;
+        // muted у каждого <audio> — сами данные продолжают приходить и буферизоваться,
+        // просто не проигрываются. Применяем ко всем текущим плеерам и запоминаем
+        // состояние для плееров, которые будут созданы позже (см. createRemotePlayer)
+        remotePlayers.forEach((player) => (player.audioEl.muted = speakerMuted));
+        muteSpeakerBtn.textContent = speakerMuted ? "🔇" : "🔊";
+        muteSpeakerBtn.title = speakerMuted ? "Включить звук" : "Выключить звук (глухой режим)";
     });
 
     // ---------- Подключение к CallHub ----------
@@ -164,7 +205,7 @@
 
             inCall = true;
             callBtn.textContent = "📵 Завершить звонок";
-            callBar.style.display = "block";
+            callBar.style.display = "flex";
             addMessage("System", "Вы вошли в звонок", "system");
         } catch (err) {
             console.error("Не удалось начать звонок:", err);
@@ -193,6 +234,12 @@
         Array.from(remotePlayers.keys()).forEach((connectionId) => destroyRemotePlayer(connectionId));
 
         inCall = false;
+        micMuted = false;
+        speakerMuted = false;
+        muteMicBtn.textContent = "🎤";
+        muteMicBtn.title = "Выключить микрофон";
+        muteSpeakerBtn.textContent = "🔊";
+        muteSpeakerBtn.title = "Выключить звук (глухой режим)";
         callBtn.textContent = "📞 Позвонить";
         callBar.style.display = "none";
         addMessage("System", "Вы вышли из звонка", "system");
@@ -224,6 +271,7 @@
 
         const audioEl = document.createElement("audio");
         audioEl.autoplay = true;
+        audioEl.muted = speakerMuted;
         audioEl.dataset.connectionId = connectionId;
         audioEl.dataset.userName = userName;
 
@@ -231,9 +279,22 @@
         audioEl.src = URL.createObjectURL(mediaSource);
         document.body.appendChild(audioEl);
 
+        // autoplay иногда тихо блокируется браузером без единой ошибки — если так,
+        // sourceopen у MediaSource может вообще не наступить, и чанки будут вечно
+        // копиться в очереди без звука и без единого намёка в консоли, почему.
+        // Форсируем .play() явно, чтобы увидеть блокировку, если она есть.
+        audioEl.play().catch((err) => {
+            console.warn(`Автовоспроизведение для ${userName} заблокировано браузером:`, err.name, err.message);
+        });
+
+        audioEl.addEventListener("error", () => {
+            console.error(`Ошибка <audio> для ${userName}:`, audioEl.error);
+        });
+
         const player = { userName, mediaSource, sourceBuffer: null, audioEl, pendingChunks: [] };
 
         mediaSource.addEventListener("sourceopen", () => {
+            console.log(`MediaSource открылся для ${userName} (${connectionId})`);
             try {
                 player.sourceBuffer = mediaSource.addSourceBuffer(MIME_TYPE);
                 player.sourceBuffer.addEventListener("updateend", () => flushPendingChunks(player));
@@ -242,6 +303,10 @@
             } catch (err) {
                 console.error(`Не удалось создать SourceBuffer для ${userName}:`, err);
             }
+        });
+
+        mediaSource.addEventListener("sourceclose", () => {
+            console.warn(`MediaSource закрылся для ${userName} (${connectionId})`);
         });
 
         remotePlayers.set(connectionId, player);
