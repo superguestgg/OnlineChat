@@ -11,7 +11,7 @@
 <body>
 <div class="header">
     <h1>Доступные комнаты</h1>
-    <a href="call.html" target="_blank">call</a>    
+    <a href="call.html" target="_blank">call</a>
     <div class="refresh-container">
         <span class="refresh-timer" id="refresh-timer"></span>
         <button id="refresh-btn" title="Обновить список комнат">⟳ Обновить</button>
@@ -52,7 +52,7 @@
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ token: response.credential })
+            body: JSON.stringify({token: response.credential})
         })
             .then(response => response.json())
             .then(data => {
@@ -146,23 +146,22 @@
     refreshBtn.addEventListener('click', refreshRooms);
 
 
-
     start();
 </script>
 
 <script>
     const clearUsernameBtn = document.getElementById('clear-username-btn');
-    
-    usernameInput.addEventListener("input", ()=>{
+
+    usernameInput.addEventListener("input", () => {
         const name = usernameInput.value.trim();
         localStorage.setItem("chatUsername", name);
     });
-    
-    clearUsernameBtn.addEventListener("click", ()=>{
+
+    clearUsernameBtn.addEventListener("click", () => {
         localStorage.removeItem("chatUsername");
         usernameInput.value = "";
     });
-    
+
     initUsername();
 </script>
 </body>

@@ -4,7 +4,21 @@
 
 (function () {
     "use strict";
-    const MIME_TYPE = "audio/webm;codecs=opus";
+
+    // Кандидаты кодеков в порядке предпочтения. Safari/iOS не поддерживает WebM вообще
+    // (ни на запись через MediaRecorder, ни на воспроизведение через MediaSource) —
+    // там обычно доступен только audio/mp4 (AAC). Выбираем первый поддерживаемый браузером.
+    const MIME_CANDIDATES = [
+        "audio/webm;codecs=opus",
+        "audio/mp4",
+    ];
+
+    function pickSupportedMimeType() {
+        if (typeof MediaRecorder === "undefined") return null;
+        return MIME_CANDIDATES.find((type) => MediaRecorder.isTypeSupported(type)) || null;
+    }
+
+    const MIME_TYPE = pickSupportedMimeType();
     const CHUNK_MS = 250;
 
     const callConnection = new signalR.HubConnectionBuilder()
@@ -17,22 +31,18 @@
     let localStream = null;
     let inCall = false;
 
-// connectionId -> { userName, mediaSource, sourceBuffer, audioEl, pendingChunks: [] }
-// Ключ — именно connectionId (стабильно уникален), а НЕ userName: два разных
-// подключения могут иметь одинаковое отображаемое имя (например, случайно
-// продублированная вкладка браузера копирует sessionStorage), и если бы
-// маршрутизация шла по имени, их аудио-потоки (два разных WebM-контейнера)
-// писались бы в один и тот же SourceBuffer и ломали бы декодирование.
+    // connectionId -> { userName, mediaSource, sourceBuffer, audioEl, pendingChunks: [] }
+    // Ключ — именно connectionId (стабильно уникален), а НЕ userName: два разных
+    // подключения могут иметь одинаковое отображаемое имя, и если бы маршрутизация
+    // шла по имени, их аудио-потоки (два разных WebM-контейнера) писались бы в один
+    // и тот же SourceBuffer и ломали бы декодирование.
     const remotePlayers = new Map();
 
-// ---------- base64 <-> ArrayBuffer ----------
-// SignalR с дефолтным JSON-протоколом сериализует byte[] на C# как base64-строку
-// (и ожидает то же самое на вход) — сырой Uint8Array/ArrayBuffer JSON.stringify
-// превращает в объект с числовыми ключами, а не в валидный byte[], отсюда и ошибка биндинга.
+    // ---------- base64 <-> ArrayBuffer ----------
     function arrayBufferToBase64(buffer) {
         let binary = "";
         const bytes = new Uint8Array(buffer);
-        const chunkSize = 0x8000; // обходим лимит на количество аргументов String.fromCharCode.apply
+        const chunkSize = 0x8000;
         for (let i = 0; i < bytes.length; i += chunkSize) {
             binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
         }
@@ -48,14 +58,12 @@
         return bytes.buffer;
     }
 
-// ---------- UI ----------
-// Кнопка звонка — рядом с "Покинуть комнату" в шапке чата
+    // ---------- UI ----------
     const callBtn = document.createElement("button");
     callBtn.id = "call-btn";
     callBtn.textContent = "📞 Позвонить";
     document.getElementById("header-controls").prepend(callBtn);
 
-// Панель участников звонка (список + индикатор состояния)
     const callBar = document.createElement("div");
     callBar.id = "call-bar";
     callBar.style.cssText = "display:none; padding:8px 15px; background:#eef; border-bottom:1px solid #ccd; font-size:14px;";
@@ -70,7 +78,7 @@
         }
     });
 
-// ---------- Подключение к CallHub ----------
+    // ---------- Подключение к CallHub ----------
     async function startCallConnection() {
         try {
             await callConnection.start();
@@ -87,21 +95,19 @@
 
     callConnection.onreconnected(async () => {
         if (inCall) {
-            // После реконнекта у нас новая connectionId — с точки зрения остальных участников
-            // это будет выглядеть как "старый участник вышел, новый зашёл" (CallUserLeft для
-            // старой connectionId + CallUserJoined для новой). Это осознанный компромисс:
-            // короткий блип пересоздания плеера вместо риска перепутать потоки при дублях имён.
             await callConnection.invoke("JoinCall", chatData.roomId, chatData.username);
         }
     });
 
-// ---------- Обработчики событий звонка ----------
+    // ---------- Обработчики событий звонка ----------
     callConnection.on("CallJoined", (existingParticipants) => {
+        console.log("CallJoined, участники уже в звонке:", existingParticipants);
         existingParticipants.forEach(({ connectionId, userName }) => createRemotePlayer(connectionId, userName));
         updateParticipantsUi();
     });
 
     callConnection.on("CallUserJoined", (connectionId, userName) => {
+        console.log("CallUserJoined:", userName, connectionId);
         createRemotePlayer(connectionId, userName);
         updateParticipantsUi();
         addMessage("System", `${userName} присоединился к звонку`, "system");
@@ -116,16 +122,27 @@
 
     callConnection.on("ReceiveAudioChunk", (fromConnectionId, chunk) => {
         const player = remotePlayers.get(fromConnectionId);
-        if (!player) return;
+        if (!player) {
+            console.warn("Чанк от неизвестного участника (нет плеера):", fromConnectionId);
+            return;
+        }
 
-        // byte[] на C# приходит в JSON-протоколе SignalR как base64-строка (как и в chatfiles.js)
         const data = base64ToArrayBuffer(chunk);
         player.pendingChunks.push(data);
         flushPendingChunks(player);
     });
 
-// ---------- Вход/выход из звонка ----------
+    // ---------- Вход/выход из звонка ----------
     async function joinCall() {
+        if (!MIME_TYPE) {
+            alert(
+                "Этот браузер не поддерживает запись аудио в форматах, которые умеет " +
+                "воспроизводить наше приложение (webm/opus или mp4/aac). " +
+                "Попробуй Chrome/Edge/Firefox на компьютере или Safari 14.3+ на iOS."
+            );
+            return;
+        }
+
         try {
             localStream = await navigator.mediaDevices.getUserMedia({
                 audio: { echoCancellation: true, noiseSuppression: true },
@@ -135,9 +152,11 @@
             mediaRecorder.ondataavailable = async (event) => {
                 if (event.data.size > 0 && inCall) {
                     const buffer = await event.data.arrayBuffer();
-                    // byte[] на сервере ждёт base64-строку в JSON-протоколе SignalR, не сырой Uint8Array
                     await callConnection.invoke("SendAudioChunk", chatData.roomId, arrayBufferToBase64(buffer));
                 }
+            };
+            mediaRecorder.onerror = (event) => {
+                console.error("MediaRecorder error:", event.error);
             };
             mediaRecorder.start(CHUNK_MS);
 
@@ -149,7 +168,13 @@
             addMessage("System", "Вы вошли в звонок", "system");
         } catch (err) {
             console.error("Не удалось начать звонок:", err);
-            alert("Не удалось получить доступ к микрофону");
+            if (err.name === "NotSupportedError") {
+                alert("Браузер не поддерживает запись аудио в выбранном формате (" + MIME_TYPE + ")");
+            } else if (err.name === "NotAllowedError") {
+                alert("Доступ к микрофону не разрешён. Проверь разрешения сайта.");
+            } else {
+                alert("Не удалось начать звонок: " + err.message);
+            }
         }
     }
 
@@ -173,9 +198,6 @@
         addMessage("System", "Вы вышли из звонка", "system");
     }
 
-// Если пользователь покидает комнату чата целиком — выходим и из звонка.
-// leaveBtn определяется в inline-скрипте страницы, который может грузиться позже,
-// поэтому вешаем обработчик через DOMContentLoaded/сразу, если DOM уже готов.
     function attachLeaveBtnHandler() {
         document.getElementById("leave-btn")?.addEventListener("click", () => {
             if (inCall) leaveCall();
@@ -191,9 +213,14 @@
         if (inCall) callConnection.invoke("LeaveCall", chatData.roomId).catch(() => {});
     });
 
-// ---------- Воспроизведение голоса участников ----------
+    // ---------- Воспроизведение голоса участников ----------
     function createRemotePlayer(connectionId, userName) {
         if (remotePlayers.has(connectionId)) return;
+
+        if (!MIME_TYPE || !window.MediaSource || !MediaSource.isTypeSupported(MIME_TYPE)) {
+            console.warn(`Браузер не может воспроизвести формат ${MIME_TYPE} — участник ${userName} не будет слышен`);
+            return;
+        }
 
         const audioEl = document.createElement("audio");
         audioEl.autoplay = true;
@@ -207,8 +234,14 @@
         const player = { userName, mediaSource, sourceBuffer: null, audioEl, pendingChunks: [] };
 
         mediaSource.addEventListener("sourceopen", () => {
-            player.sourceBuffer = mediaSource.addSourceBuffer(MIME_TYPE);
-            player.sourceBuffer.addEventListener("updateend", () => flushPendingChunks(player));
+            try {
+                player.sourceBuffer = mediaSource.addSourceBuffer(MIME_TYPE);
+                player.sourceBuffer.addEventListener("updateend", () => flushPendingChunks(player));
+                // на случай, если чанки уже накопились в очереди, пока sourceopen ещё не срабатывал
+                flushPendingChunks(player);
+            } catch (err) {
+                console.error(`Не удалось создать SourceBuffer для ${userName}:`, err);
+            }
         });
 
         remotePlayers.set(connectionId, player);
@@ -222,8 +255,6 @@
     }
 
     function flushPendingChunks(player) {
-        // mediaSource могла закрыться/отсоединиться — если так, не пытаемся аппендить,
-        // а тихо пересоздаём плеер заново, чтобы звук не пропал молча навсегда.
         if (!player.mediaSource || player.mediaSource.readyState !== "open") {
             return;
         }

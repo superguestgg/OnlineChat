@@ -12,10 +12,9 @@ namespace OnlineChat.Hubs;
 ///
 /// ВАЖНО: участники маршрутизируются по Context.ConnectionId, а не по userName.
 /// userName используется только как отображаемая подпись — два разных подключения
-/// с одинаковым именем (например, случайно продублированная вкладка браузера)
-/// не должны схлопываться в одного "участника", иначе их аудио-потоки (два разных
-/// WebM-контейнера) будут писаться в один и тот же SourceBuffer на приёмнике
-/// и поломают декодирование.
+/// с одинаковым именем не должны схлопываться в одного "участника", иначе их
+/// аудио-потоки (два разных WebM-контейнера) будут писаться в один и тот же
+/// SourceBuffer на приёмнике и поломают декодирование.
 /// </summary>
 public class CallHub(ILogger<CallHub> logger) : Hub
 {
@@ -33,16 +32,23 @@ public class CallHub(ILogger<CallHub> logger) : Hub
 
         await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
 
-        // Остальным участникам — что подключился новый (передаём connectionId как
-        // стабильный ключ для их клиентского remotePlayers, userName — только для подписи)
+        logger.LogInformation(
+            "JoinCall: room={RoomId} user={UserName} connectionId={ConnectionId} totalParticipantsNow={Count} allParticipants=[{Participants}]",
+            roomId, userName, Context.ConnectionId, participants.Count,
+            string.Join(", ", participants.Select(p => $"{p.Value}:{p.Key}")));
+
         await Clients.OthersInGroup(roomId)
             .SendAsync("CallUserJoined", Context.ConnectionId, userName);
 
-        // Новому участнику — список уже присутствующих (тоже connectionId + userName)
         var others = participants
             .Where(p => p.Key != Context.ConnectionId)
             .Select(p => new { connectionId = p.Key, userName = p.Value })
             .ToArray();
+
+        logger.LogInformation(
+            "JoinCall: отправляю {UserName} ({ConnectionId}) список из {OthersCount} уже присутствующих: [{Others}]",
+            userName, Context.ConnectionId, others.Length,
+            string.Join(", ", others.Select(o => $"{o.userName}:{o.connectionId}")));
 
         await Clients.Caller.SendAsync("CallJoined", others);
     }
@@ -55,13 +61,14 @@ public class CallHub(ILogger<CallHub> logger) : Hub
 
     /// <summary>
     /// Приём аудио-чанка и рассылка всем остальным участникам звонка в этой комнате.
-    /// Собеседникам сообщается connectionId отправителя — им маршрутизируется чанк
-    /// к правильному плееру независимо от того, совпадают ли у кого-то имена.
     /// </summary>
     public async Task SendAudioChunk(string roomId, byte[] chunk)
     {
         if (!RoomParticipants.ContainsKey(roomId))
         {
+            logger.LogWarning(
+                "SendAudioChunk: комната {RoomId} не найдена для connectionId={ConnectionId}, чанк проигнорирован",
+                roomId, Context.ConnectionId);
             return;
         }
 
@@ -73,6 +80,9 @@ public class CallHub(ILogger<CallHub> logger) : Hub
     {
         if (ConnectionRoom.TryRemove(Context.ConnectionId, out var roomId))
         {
+            logger.LogInformation(
+                "OnDisconnected: connectionId={ConnectionId} room={RoomId} exception={Exception}",
+                Context.ConnectionId, roomId, exception?.Message);
             await RemoveFromCall(roomId, Context.ConnectionId);
         }
         await base.OnDisconnectedAsync(exception);
@@ -81,8 +91,12 @@ public class CallHub(ILogger<CallHub> logger) : Hub
     private async Task RemoveFromCall(string roomId, string connectionId)
     {
         if (RoomParticipants.TryGetValue(roomId, out var participants) &&
-            participants.TryRemove(connectionId, out _))
+            participants.TryRemove(connectionId, out var userName))
         {
+            logger.LogInformation(
+                "RemoveFromCall: room={RoomId} user={UserName} connectionId={ConnectionId} осталось участников={Count}",
+                roomId, userName, connectionId, participants.Count);
+
             if (participants.IsEmpty)
             {
                 RoomParticipants.TryRemove(roomId, out _);
