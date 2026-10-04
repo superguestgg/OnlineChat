@@ -30,7 +30,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_SSH_PORT }}
           source: "./publish2/**"
-          target: "~/onlinechat.na4u.ru/app/"
+          target: ${{ secrets.DEPLOY_PATH }}
       
       - name: Change file rights
         uses: appleboy/ssh-action@v0.1.6
@@ -40,4 +40,4 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_SSH_PORT }}
           script: |
-            chmod +x ~/onlinechat.na4u.ru/app/publish2/OnlineChat
+            chmod +x ${{ secrets.DEPLOY_PATH }}publish2/OnlineChat
